@@ -1,0 +1,11 @@
+[Properties]
+Version=25.0
+[WorkspacePaths]
+ConfigFile=.\Programs\Config.ws
+[Projects]
+Project0=WebApp.src
+[Conditionals]
+Is$WebApp=True
+[Libraries]
+Lib1=..\Libraries\DataFlex Reports Demo Library\DataFlex Reports Demo Library.sws
+

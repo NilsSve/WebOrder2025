@@ -1,0 +1,212 @@
+﻿Use cWebView.pkg
+Use cWebForm.pkg
+Use cWebLabel.pkg
+Use cWebTreeView.pkg
+
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+
+Use cWebSpacer.pkg
+Use cWebHorizontalLine.pkg
+Use cWebDragDropHelper.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cWebHtmlBox.pkg
+
+Object oDemoDragDropWithinControl is a cWebView
+    Set psCaption to "Demo Drag 'n Drop within Control"
+    Set piColumnCount to 3
+    Set pbClearAfterSave to False
+    
+    Object oVendorDataDictionary is a cVendorDataDictionary
+    End_Object
+    
+    Object oInventoryDataDictionary is a cInventoryDataDictionary
+        Set DDO_Server to oVendorDataDictionary
+    End_Object
+    
+    Set Main_DD to oInventoryDataDictionary
+    Set Server  to oInventoryDataDictionary
+    
+    Object oLeftPanel is a cWebPanel
+        Set peRegion to prLeft
+        Set piWidth to 400
+        Set piMinWidth to 100
+        Set pbResizable to True
+
+        Object oDescriptionTreeHtml is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to @"
+                <h1>Move treeview items</h1>
+                <p>The demo below demonstrates how the <b>cWebDragDropHelper</b> can be used to allow tree items to be dragged to a different folder.</p>
+                <p>Try dragging the items to a different folder.</p>
+                "
+        End_Object
+        
+        Object oItemsTree is a cWebTreeView
+            Set pbServerOnSelect to True
+            Set psLabel to "Tree"
+            
+            Function OnLoadChildNodes String sId String sValue Integer iLevel returns tWebTreeItem[]
+                tWebTreeItem[] aItems
+                tWebTreeItem tItem
+                Integer iCount
+                
+                Move 0 to iCount
+                
+                If (iLevel = 0) Begin   //  At the first level we will show the vendors
+                    //  Loop through vendors (use Request_Read so we don't change the current record of the DDO)
+                    Send Request_Read of oVendorDataDictionary FIRST_RECORD Vendor.File_Number Index.1
+                    While (Found)
+                        
+                        //  Add tree item for the vendor
+                        Move (Trim(Vendor.Name))                to aItems[iCount].sName
+                        Move (Trim(Vendor.ID))                  to aItems[iCount].sId
+                        Move True                               to aItems[iCount].bLoadChildren
+                        Move True                               to aItems[iCount].bFolder
+//                        Move (SerializeRowID(GetRowID(Vendor))) to aItems[iCount].sValue
+                        
+                        Increment iCount
+                        Send Locate_Next to oVendorDataDictionary
+                    Loop
+                End
+                
+                If (iLevel = 1) Begin
+                    
+                    Clear Inventory
+                    
+                    Move sId to Inventory.Vendor_ID
+                    Find GT Inventory by Index.2
+                    
+                    
+                    
+                    While (Found and Trim(Inventory.Vendor_ID) = sId)
+                        
+                        //  Add tree item for the item
+                        Move (Trim(Inventory.Item_ID))               to aItems[iCount].sName
+                        Move (Trim(Inventory.Description))           to aItems[iCount].sAltText
+                        Move (Trim(Inventory.Item_ID))               to aItems[iCount].sId
+                        Move False                              to aItems[iCount].bLoadChildren
+                        Move False                              to aItems[iCount].bFolder
+                        
+                        Increment iCount
+                        Find GT Inventory by Index.2
+                    Loop
+                    
+                End
+                
+                Function_Return aItems
+            End_Function
+        End_Object
+        
+        Object oDragDropItemsTreeHelper is a cWebDragDropHelper
+            Send RegisterDragSource oItemsTree C_WebDragTreeviewItem
+            Send RegisterDropTarget oItemsTree C_WebDropTreeviewFolder
+            
+            Procedure OnDrop Handle hoDragSource Handle hoDropTarget WebDropPosition eDropPosition
+                tWebTreeViewDragData tDragData
+                tWebTreeViewDropData tDropData
+                
+                
+                
+                Get DragData of hoDragSource to tDragData
+                Get DropData of hoDropTarget to tDropData
+                
+                Send RemoveNode of hoDragSource tDragData.data.sId
+                
+                Move tDropData.data.sId to tDragData.data.sParentId
+                Send InsertNode of oItemsTree tDragData.data
+                
+                Send Select of oItemsTree tDragData.data.sId
+                
+            End_Procedure
+        End_Object
+    End_Object
+    
+    Object oCenterPanel is a cWebPanel
+        Set peRegion to prCenter
+        Set piColumnCount to 2
+        Set piMinWidth to 400
+        
+         Object oDescriptionTreeHtml is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to @"
+                <h1>Move list items</h1>
+                <p>The demo below demonstrates how the <b>cWebDragDropHelper</b> can be used to allow rows in a list to be reordered</p>
+                <p>Try dragging rows to a different position.</p>
+                "
+        End_Object
+        
+
+        Object oItemsList is a cWebList
+            Set peDbGridType to gtManual
+            Set pbDataAware to False
+            Set pbFillHeight to True
+            Set piColumnSpan to 2
+            
+            Object oWebColumn1 is a cWebColumn
+                Set psCaption to "Item"
+                Set piWidth to 50
+            End_Object
+            
+            Procedure OnManualLoadData tWebRow[] ByRef aTheRows String ByRef sCurrentRowID
+                Move 1              to aTheRows[0].sRowId
+                Move "Ambulance"    to aTheRows[0].aCells[0].sValue
+                
+                Move 2              to aTheRows[1].sRowId
+                Move "Car"          to aTheRows[1].aCells[0].sValue
+                
+                Move 3              to aTheRows[2].sRowId
+                Move "FireTruck"    to aTheRows[2].aCells[0].sValue
+                
+                Move 4              to aTheRows[3].sRowId
+                Move "Motorcycle"   to aTheRows[3].aCells[0].sValue
+                
+                Move 5              to aTheRows[4].sRowId
+                Move "Police car"   to aTheRows[4].aCells[0].sValue
+                
+                Move 6              to aTheRows[5].sRowId
+                Move "Truck"        to aTheRows[5].aCells[0].sValue
+                
+                
+            End_Procedure
+            
+            Procedure OnLoad
+                Send GridRefresh
+            End_Procedure
+        End_Object
+
+        Object oDragDropListItems is a cWebDragDropHelper
+            Procedure OnDrop Handle hoDragSource Handle hoDropTarget WebDropPosition eDropPosition
+                tWebListDragData tDragData
+                tWebListDropData tDropData
+                
+                Get DragData of hoDragSource to tDragData
+                Get DropData of hoDropTarget to tDropData
+                
+                Send RemoveRow of hoDragSource (tDragData.data.sRowId)
+                
+                If (eDropPosition = C_WebDropPosBefore or eDropPosition = C_WebDropPosOn) Begin
+                    Send DataSetInsertRowBefore of hoDropTarget tDropData.data.sRowId tDragData.data
+                End
+                Else If (eDropPosition = C_WebDropPosAfter) Begin
+                    Send DataSetInsertRowAfter of hoDropTarget tDropData.data.sRowId tDragData.data
+                End
+                Else Begin
+                    Send DataSetAppendRow of hoDropTarget tDragData.data 
+                End
+                
+                Send MoveToRowByID of hoDropTarget tDragData.data.sRowId
+                
+            End_Procedure
+
+            Send RegisterDragSource oItemsList C_WebDragListRow
+            Send RegisterDropTarget oItemsList C_WebDropListRow
+        End_Object
+      
+    End_Object
+    
+End_Object
+
+
+

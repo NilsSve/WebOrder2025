@@ -1,0 +1,702 @@
+﻿Use cWebDrawing.pkg
+Use cWebTimer.pkg
+
+Class cWebTetris_Timer is a cWebTimer
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        Set pbAutoStart to False
+        Set piInterval to 500
+        
+    End_Procedure
+
+    Procedure OnTimer
+        Delegate Send NextFrame
+    End_Procedure
+End_Class
+
+Struct tFigure
+    Integer eFigure
+    Boolean[][] pattern
+    Integer eStyle
+    Integer iWidth
+    Integer iHeight
+End_Struct
+
+Struct tMap
+    Integer[][] pattern
+End_Struct
+
+Define C_TetrisFigures for 7
+Define C_MapId for "map"
+Define C_FigureId for "figure"
+
+Define C_ColorBackground for "#E8D8E4"
+Define C_ColorRaster for "#B47EA6"
+Define C_ColorLines for "#40263A"
+Define C_ColorStyle1 for "#87A330"
+Define C_ColorStyle2 for "#840032"
+Define C_ColorStyle3 for "#D1603D"
+Define C_ColorStyle4 for "#87A0B2"
+Define C_ColorStyle5 for "#87A330"
+Define C_ColorStyle6 for "#D1603D"
+Define C_ColorStyle7 for "#87A0B2"
+
+Class cWebTetris is a cWebDrawing
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+
+        Set pbShowLabel to False
+        Set piDrawingHeight to 820
+        Set piDrawingWidth to 420
+        Set peResizeMode to wdResizeModeScale
+        
+        
+        Property Integer piColumns 10
+        Property Integer piRows 20
+        Property Boolean pbShowRaster False
+        
+        { WebProperty = Server }
+        Property Integer piPosX 0
+        { WebProperty = Server }
+        Property Integer piPosY 0
+        { WebProperty = Server }
+        Property tFigure pFigure
+        { WebProperty = Server }
+        Property Integer piScore 0
+        { WebProperty = Server }
+        Property tMap pMap
+        
+        Property Handle phoTimer -1
+
+        Object oTetrisTimer is a cWebTetris_Timer
+            Delegate Set phoTimer to Self
+        End_Object
+        
+    End_Procedure
+    
+    Function MarginLeft Returns Float
+        Function_Return 10
+    End_Function
+    
+    Function MarginRight Returns Float
+        Function_Return 10
+    End_Function
+    
+    Function MarginTop Returns Float
+        Function_Return 10    
+    End_Function
+    
+    Function MarginBottom Returns Float
+        Function_Return 10
+    End_Function
+    
+    Function BlockWidth Returns Float
+        Function_Return ((piDrawingWidth(Self) - MarginLeft(Self) - MarginRight(Self)) / piColumns(Self))
+    End_Function
+    
+    Function BlockHeight Returns Float
+        Function_Return ((piDrawingHeight(Self) - MarginTop(Self) - MarginBottom(Self)) / piRows(Self))
+    End_Function
+
+    Function CreateFigure Integer eFigure Returns tFigure
+        tFigure result
+        
+        Case Begin
+            Case (eFigure = 0) 
+                // x
+                // x
+                // xx
+                Move True to result.pattern[2][1]
+                Move True to result.pattern[2][0]
+                Move True to result.pattern[1][0]
+                Move True to result.pattern[0][0]
+                
+                Move 1 to result.eStyle
+                
+                Move 3 to result.iHeight
+                Move 2 to result.iWidth
+                Case Break
+           Case (eFigure = 1) 
+                // xx
+                // x
+                // x
+                Move True to result.pattern[2][0]
+                Move True to result.pattern[1][0]
+                Move True to result.pattern[0][0]
+                Move True to result.pattern[0][1]
+                
+                Move 2 to result.eStyle
+                
+                Move 3 to result.iHeight
+                Move 2 to result.iWidth
+                Case Break 
+           Case (eFigure = 2) 
+                // xx
+                // xx
+                Move True to result.pattern[1][1]
+                Move True to result.pattern[1][0]
+                Move True to result.pattern[0][1]
+                Move True to result.pattern[0][0]
+                
+                Move 3 to result.eStyle
+                
+                Move 2 to result.iHeight
+                Move 2 to result.iWidth
+                Case Break 
+           Case (eFigure = 3) 
+                // xxxx
+                Move True to result.pattern[0][3]
+                Move True to result.pattern[0][2]
+                Move True to result.pattern[0][1]
+                Move True to result.pattern[0][0]
+                
+                Move 4 to result.eStyle
+                
+                Move 1 to result.iHeight
+                Move 4 to result.iWidth
+                Case Break 
+           Case (eFigure = 4) 
+                // xx
+                //  xx
+                Move True to result.pattern[1][2]
+                Move True to result.pattern[1][1]
+                Move True to result.pattern[0][1]
+                Move True to result.pattern[0][0]
+                
+                Move 5 to result.eStyle
+                
+                Move 2 to result.iHeight
+                Move 3 to result.iWidth
+                Case Break 
+           Case (eFigure = 5) 
+                //  xx
+                // xx
+                Move True to result.pattern[1][1]
+                Move True to result.pattern[1][0]
+                Move True to result.pattern[0][2]
+                Move True to result.pattern[0][1]
+                
+                Move 6 to result.eStyle
+                
+                Move 2 to result.iHeight
+                Move 3 to result.iWidth
+                Case Break 
+           Case (eFigure = 6) 
+                //  x
+                // xxx
+                Move True to result.pattern[1][2]
+                Move True to result.pattern[1][1]
+                Move True to result.pattern[1][0]
+                Move True to result.pattern[0][1]
+                
+                Move 7 to result.eStyle
+                
+                Move 2 to result.iHeight
+                Move 3 to result.iWidth
+                Case Break 
+        Case End
+       
+        
+        Function_Return result
+    End_Function
+
+    Procedure RotateFigure tFigure ByRef figure Boolean bLeft
+        Boolean[][] rotated
+        Integer iY iX iTemp
+        
+        If (bLeft) Begin
+            For iY from 0 to (SizeOfArray(figure.pattern) - 1)
+                For iX from 0 to (SizeOfArray(figure.pattern[iY]) - 1)
+                    If (figure.pattern[iY][iX]) ;
+                        Move True to rotated[ix][iy]
+                Loop
+            Loop
+             
+            Move (ReverseArray(rotated)) to figure.pattern
+        End 
+        Else Begin
+            Move (ReverseArray(figure.pattern)) to figure.pattern
+            
+            For iY from 0 to (SizeOfArray(figure.pattern) - 1)
+                For iX from 0 to (SizeOfArray(figure.pattern[iY]) - 1)
+                    If (figure.pattern[iY][iX]) ;
+                        Move True to rotated[ix][iy]
+                Loop
+            Loop
+             
+            Move rotated to figure.pattern 
+        End
+        
+        Move figure.iWidth to iTemp
+        Move figure.iHeight to figure.iWidth
+        Move iTemp to figure.iHeight
+    End_Procedure
+
+    Procedure PaintBlock Integer iPosX Integer iPosY Integer eStyle
+        Float fWidth fHeight
+        String sID sFill
+        Boolean bCircle
+        
+        Move ("Block_" + (String(iPosX)) + "_" + (String(iPosY))) to sID
+        Send DeleteItem sID
+        
+        Get BlockWidth to fWidth
+        Get BlockHeight to fHeight
+        
+        Send CreateRectangle sID (XYPoint(Self, fWidth * iPosX + MarginLeft(Self) + 2, fHeight * iPosY + MarginTop(Self) + 2)) (WHSize(Self, fWidth - 4, fHeight - 4)) 4
+        Send StrokeColor sID C_ColorLines
+        Send StrokeWidth sID 2
+        Move "#087E8B" to sFill
+        
+        Case Begin
+            Case (eStyle = 1)
+                Move C_ColorStyle1 to sFill
+                Case Break
+            Case (eStyle = 2)
+                Move C_ColorStyle2 to sFill
+                Case Break
+            Case (eStyle = 3)
+                Move C_ColorStyle3 to sFill
+                Case Break
+            Case (eStyle = 4)
+                Move C_ColorStyle4 to sFill
+                Case Break
+            Case (eStyle = 5)
+                Move C_ColorStyle5 to sFill
+                Move True to bCircle
+                Case Break
+            Case (eStyle = 6)
+                Move C_ColorStyle6 to sFill
+                Move True to bCircle
+            Case (eStyle = 7)
+                Move C_ColorStyle7 to sFill
+                Move True to bCircle
+                Case Break
+        Case End
+        
+        Send FillColor sID sFill
+        
+        If (bCircle) Begin
+            Move (sID + "_c") to sID
+            Send DeleteItem sID
+            Send CreateRectangle sID (XYPoint(Self, fWidth * iPosX + MarginLeft(Self) + 6, fHeight * iPosY + MarginTop(Self) + 6)) (WHSize(Self, fWidth - 12, fHeight - 12)) 4
+            Send StrokeColor sID C_ColorLines
+            Send StrokeWidth sID 1
+        End
+    End_Procedure
+
+    Procedure PaintFigure //Integer iPosX Integer iPosY tFigure figure
+        Integer iX iY iPosX iPosY
+        tFigure figure
+        
+        WebGet piPosX to iPosX
+        WebGet piPosY to iPosY
+        WebGet pFigure to figure
+        
+        Send DeleteItem C_FigureId
+        
+        Send CreateGroup C_FigureId
+        
+        For iY from 0 to (SizeOfArray(figure.pattern) - 1)
+            For iX from 0 to (SizeOfArray(figure.pattern[iY]) - 1)
+                If (figure.pattern[iY][iX]) ;
+                    Send PaintBlock (iPosX + iX) (iPosY + iY) figure.eStyle
+            Loop
+        Loop
+        
+        Send EndCreateGroup C_FigureId
+    End_Procedure
+
+    Procedure PaintMap
+        Integer iX iY iColumns iRows
+        tMap map
+        
+        Send DeleteItem C_MapId
+        Send CreateGroup C_MapId
+        
+//        Send PaintBlock 9 19
+//        Send PaintBlock 8 19
+//        Send PaintBlock 7 19
+//        Send PaintBlock 9 18
+//        Send PaintBlock 8 18
+//        Send PaintBlock 9 17
+//        
+//        
+//        Send PaintBlock 0 19
+//        Send PaintBlock 1 19
+//        Send PaintBlock 2 19
+//        Send PaintBlock 0 18
+//        Send PaintBlock 1 18
+//        Send PaintBlock 0 17
+        
+        WebGet pMap to map
+        Get piColumns to iColumns
+        Get piRows to iRows
+        
+        For iY from 0 to (iRows - 1)
+            For iX from 0 to (iColumns - 1)
+                If (map.pattern[iY][ix] > 0) ;
+                    Send PaintBlock iX iY map.pattern[iY][ix]
+            Loop
+        Loop
+        
+        
+        Send EndCreateGroup C_MapId
+    End_Procedure
+    
+    Procedure CreateScore Boolean bDeletePrevious
+        String sScore
+        If (bDeletePrevious) Begin
+            Send DeleteItem "score"
+        End
+        WebGet piScore to sScore
+        Move (Left("000000",6-Length(sScore))+sScore) to sScore
+        Send CreateText "score" (XYPoint(Self, piDrawingWidth(Self)-20,52)) sScore "Arial" 36 wdFontJustificationRight "bold"
+        Send FillColor "score" "DarkRed"
+        Send StrokeColor "score" "DarkRed"
+    End_Procedure 
+    
+    Procedure PaintBackground
+        Integer iCol iRow
+        Float fWidth fHeight
+        String sId
+        
+        Send DeleteItem "background"
+        Send CreateGroup "background" 
+        
+        Send CreateRectangle "area" (XYPoint(Self, 1,1)) (WHSize(Self, piDrawingWidth(Self) - 2, piDrawingHeight(Self) - 2 )) 10
+        Send StrokeColor "area" C_ColorLines
+        Send StrokeWidth "area" 2
+        Send FillColor "area" C_ColorBackground
+        
+        If (pbShowRaster(Self)) Begin
+            Get BlockWidth to fWidth
+            Get BlockHeight to fHeight
+            
+            For iCol from 0 to (piColumns(Self))
+                Move ("RasterCol_" + String(iCol)) to sId
+                Send CreatePath sId
+                Send MoveTo sId (XYPoint(Self, iCol * fWidth + MarginLeft(Self), MarginTop(Self)))
+                Send LineTo sId (XYPoint(Self, iCol * fWidth + MarginLeft(Self), piDrawingHeight(Self) - MarginBottom(Self)))
+                Send StrokeColor sId C_ColorRaster
+                Send StrokeWidth sId 1
+            Loop
+            
+            For iRow from 0 to (piRows(Self))
+                Move ("RasterRow_" + String(iRow)) to sId
+                Send CreatePath sId
+                Send MoveTo sId (XYPoint(Self, MarginLeft(Self), iRow * fHeight + MarginTop(Self)))
+                Send LineTo sId (XYPoint(Self, piDrawingWidth(Self) - MarginRight(Self), iRow * fHeight + MarginTop(Self)))
+                Send StrokeColor sId C_ColorRaster
+                Send StrokeWidth sId 1
+            Loop
+        End
+        Send CreateScore False
+        Send EndCreateGroup "background" 
+    End_Procedure
+
+    Procedure InitMap
+        tMap newMap
+        Integer iRow iRows iColumns
+        Integer[] newRow
+        
+        
+        
+        Get piRows to iRows
+        Get piColumns to iColumns
+        
+        Move (ResizeArray(newRow, iColumns, 0)) to newRow
+        For iRow from 0 to (iRows - 1)
+            Move newRow to newMap.pattern[iRow]
+        Loop
+        
+        WebSet pMap to newMap        
+    End_Procedure
+
+    Procedure OnLoad
+        Send InitMap
+        Send PaintBackground
+        Send PaintMap
+          
+        Send UpdateDrawing
+    End_Procedure
+    
+    Function ValidatePosition Returns Boolean
+        tFigure figure
+        tMap map
+        Integer iPosX iPosY iX iY
+        
+        WebGet piPosX to iPosX
+        WebGet piPosY to iPosY
+        WebGet pFigure to figure
+        
+        
+        //  Quick check if not running off map
+        If (iPosX < 0 or iPosY < 0) Begin
+            Function_Return False
+        End
+        If (figure.iHeight + iPosY  > piRows(Self)) Begin
+            Function_Return False
+        End
+        If (figure.iWidth + iPosX > piColumns(Self)) Begin
+            Function_Return False
+        End
+        
+        //  Check map itself
+        WebGet pMap to map
+        
+        For iY from 0 to (sizeofarray(figure.pattern) - 1)
+            For iX from 0 to (SizeOfArray(figure.pattern[iY]) - 1)
+                If (figure.pattern[iY][iX]) Begin
+                    If (map.pattern[iY + iPosY][ix + iPosX] > 0) ;
+                        Function_Return False
+                End
+            Loop
+        Loop
+        
+        
+        Function_Return True
+    End_Function
+    
+    Procedure NewFigure
+        Integer eFigure
+        tFigure figure
+        
+        Move (Random(C_TetrisFigures)) to eFigure
+        Get CreateFigure eFigure to figure
+        
+        WebSet piPosX to (Round((piColumns(Self) / 2.0) - (figure.iWidth / 2.0)))
+        WebSet piPosY to 0
+        
+        WebSet pFigure to figure
+        
+        
+        
+        If (not(ValidatePosition(Self))) Begin
+            Send GameOver
+        End
+    End_Procedure
+    
+    Procedure SaveFigureToMap
+        tFigure figure
+        tMap map
+        Integer iPosX iPosY iX iY
+        
+        WebGet piPosX to iPosX
+        WebGet piPosY to iPosY
+        WebGet pFigure to figure
+        WebGet pMap to map
+        
+        For iY from 0 to (sizeofarray(figure.pattern) - 1)
+            For iX from 0 to (SizeOfArray(figure.pattern[iY]) - 1)
+                If (figure.pattern[iY][iX]) Begin
+                    Move figure.eStyle to map.pattern[iY + iPosY][ix + iPosX]
+                End
+            Loop
+        Loop
+        
+        WebSet pMap to map
+    End_Procedure
+    
+    Procedure IncrementScore Integer iAmt
+        Integer iScore
+        WebGet piScore to iScore
+        Move (iScore+iAmt) to iScore
+        WebSet piScore to iScore
+    End_Procedure
+    
+    Procedure DetectFullLines
+        Integer iX iY iColumns iRows
+        tMap map
+        Integer[] aNewRow        
+
+        
+        WebGet pMap to map
+        Get piColumns to iColumns
+        Get piRows to iRows
+        
+        For iY from 0 to (iRows - 1)
+            Move 0 to iX
+            While (iX < iColumns and (map.pattern[iY][ix] > 0))
+                Increment iX
+            Loop
+            
+            If (iX = iColumns) Begin
+                Move (RemoveFromArray(map.pattern, iY)) to map.pattern        
+                Move (InsertInArray(map.pattern, 0, ResizeArray(aNewRow, iColumns, 0))) to map.pattern
+                Send IncrementScore 100
+                Send CreateScore True
+            End    
+        Loop
+        
+        WebSet pMap to map
+    End_Procedure
+    
+    Procedure DoFrame
+        Integer iPosY
+        
+        WebGet piPosY to iPosY
+        Increment iPosY
+        WebSet piPosY to iPosY
+        
+        If (not(ValidatePosition(Self))) Begin
+            Decrement iPosY
+            WebSet piPosY to iPosY
+            
+            Send SaveFigureToMap
+            Send DetectFullLines
+            Send NewFigure
+            Send PaintMap
+        End
+        
+        Send PaintFigure
+        Send UpdateDrawing
+    End_Procedure
+    
+    Procedure NextFrame
+        Send DoFrame
+    End_Procedure
+    
+    Procedure MoveLeft
+        Integer iPosX
+        
+        WebGet piPosX to iPosX
+        Decrement iPosX
+        WebSet piPosX to iPosX
+        
+        //  If not valid undo!
+        If (not(ValidatePosition(Self))) Begin
+            Increment iPosX
+            WebSet piPosX to iPosX
+        End
+        Else Begin
+            Send PaintFigure
+            Send UpdateDrawing
+        End
+    End_Procedure
+    
+    Procedure MoveRight
+        Integer iPosX
+        
+        WebGet piPosX to iPosX
+        Increment iPosX
+        WebSet piPosX to iPosX
+        
+        //  If not valid undo!
+        If (not(ValidatePosition(Self))) Begin
+            Decrement iPosX
+            WebSet piPosX to iPosX
+        End
+        Else Begin
+            Send PaintFigure
+            Send UpdateDrawing
+        End
+    End_Procedure
+    
+    Procedure MoveDown
+        Integer iposY
+        
+        WebGet piPosY to iposY                              
+        Increment iposY
+        WebSet piPosY to iposY
+        
+        // If not valid undo!
+        If (not(ValidatePosition(Self))) Begin
+            Decrement iposY
+            WebSet piPosY to iposY
+        End
+        Else Begin
+            Send PaintFigure
+            Send UpdateDrawing
+        End
+    End_Procedure
+
+    Procedure DropDown
+        Integer iposY
+       
+        WebGet piPosY to iposY
+        Repeat
+            Increment iposY
+            WebSet piPosY to iposY
+        Until (not(ValidatePosition(Self)))
+           
+        Decrement iposY
+        WebSet piPosY to iposY
+        Send PaintFigure
+        Send UpdateDrawing
+    End_Procedure
+    
+    Procedure Rotate Boolean bLeft
+        tFigure figure figureCopy
+        Integer iPosX iPosXCopy
+        
+        WebGet pFigure to figure
+        Move figure to figureCopy
+        
+        WebGet piPosX to iPosX
+        Move iPosX to iPosXCopy
+        
+        Send RotateFigure (&figure) bLeft
+        If (iPosX + figure.iWidth > piColumns(Self)) Begin
+            Move (piColumns(Self) - figure.iWidth) to iPosX
+        End
+        
+        WebSet pFigure to figure
+        WebSet piPosX to iPosX
+        
+        //  If not valid undo!
+        If (not(ValidatePosition(Self))) Begin
+            WebSet pFigure to figureCopy
+            WebSet piPosX to iPosXCopy
+        End
+        Else Begin
+            Send PaintFigure
+            Send UpdateDrawing
+        End
+    End_Procedure
+    
+    Procedure RotateLeft
+        Send Rotate True
+    End_Procedure
+    
+    Procedure RotateRight
+        Send Rotate False
+    End_Procedure
+    
+    Procedure Start
+        Send InitMap
+        Send PaintMap
+        Send NewFigure
+        Send PaintFigure 
+        Send UpdateDrawing
+        WebSet piScore to 0
+        Send CreateScore True
+        Send Start of (phoTimer(Self))
+    End_Procedure
+
+    Procedure Pause
+        Send Stop of (phoTimer(Self))
+    End_Procedure
+    
+    Procedure Resume
+        Send NextFrame
+        Send Start of (phoTimer(Self))
+    End_Procedure
+    
+    Procedure GameOver
+        Integer iScore
+        WebGet piScore to iScore
+        Send Stop of (phoTimer(Self))
+        Send UserError ("Game over! Your score was: "+String(iScore))
+    End_Procedure
+    
+    Function IsRunning Returns Boolean
+        Boolean bRunning
+        
+        WebGet pbRunning of (phoTimer(Self)) to bRunning
+        
+        Function_Return bRunning
+    End_Function
+
+End_Class

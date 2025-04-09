@@ -1,0 +1,703 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebEdit.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cWebButton.pkg
+Use cWebMenuButton.pkg
+Use cWebMenuItemCheckbox.pkg
+Use cWebHtmlBox.pkg
+
+Struct tMatch
+    String sName 
+    String sValue
+    Integer iFromChar
+    Integer iToChar
+    String sColor
+End_Struct
+    
+    
+Enum_List 
+    Define regExOpMatchAllCallback for 0
+    Define regExOpMatchAll
+    Define regExOpMatchAllGroups
+    Define regExOpMatchAllOffsets
+    Define regExOpMatchAllGroupsOffsets
+    Define regExOpMatch
+    Define regExOpRMatch
+    Define regExOpSplit
+    Define regExOpSubstitute
+    Define regExOpSubstituteAll
+    Define regExOpSubstituteExCallback
+End_Enum_List
+
+Object oDemoRegEx is a cWebView
+    Set psCaption to "Regular Expressions Demo"
+    Set piMinWidth to 700
+    Set peLayoutType to ltGrid
+
+    Object oRegEx is a cRegEx
+    
+    End_Object    
+
+
+    Property tMatch[] paMatches
+    { WebProperty=Server }
+    Property Integer peOperation regExOpMatchAllCallback
+
+    Set pbServerOnSubmit to True
+
+    // Your DDO structure will go here
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 10
+        Set piRowCount to 4
+        Set psRowHeights to "2/1fr 3/1fr"
+        Set psColumnWidths to "8/135 9/135"
+
+        Object oReplaceWithFrm is a cWebForm
+            Set piColumnSpan to 5
+            Set psLabel to "Replace With:"
+            Set piRowIndex to 1
+            Set piColumnIndex to 0
+            Set peLabelPosition to lpTop
+            Set psValue to "<b>$0</b>"
+        End_Object
+
+        Object oRegExFrm is a cWebForm
+            Set piColumnSpan to 8
+            Set psLabel to "Expression:"
+            Set piColumnIndex to 0
+            Set piRowIndex to 0
+            Set peLabelPosition to lpTop
+            Set psValue to """
+                (?:\"|\')(?<key>[\w\d]+)(?:\"|\')(?:\:\s*)(?:\"|\')?(?<value>[\w\s-]*)(?:\"|\')?
+                """
+        End_Object
+
+        Object oMatchesList is a cWebList
+            Set piRowIndex to 1
+            Set piColumnIndex to 5
+            Set piColumnSpan to 5
+            Set pbFillHeight to True
+            Set peDbGridType to gtManual
+            Set pbDataAware to False
+            Set pbShowLabel to True
+            Set peLabelPosition to lpTop
+            Set psLabel to "Matches:"
+            Set piRowSpan to 2
+
+            Object oNameCol is a cWebColumn
+                Set psCaption to "Name"
+                Set piWidth to 428
+                Set pbAllowHtml to True
+            End_Object
+
+            Object oPositionCol is a cWebColumn
+                Set psCaption to "Position"
+                Set piWidth to 135
+                Set pbFixedWidth to True
+            End_Object
+
+            Object oValueCol is a cWebColumn
+                Set psCaption to "Value"
+                Set piWidth to 558
+            End_Object
+
+            Procedure OnManualLoadData tWebRow[]  ByRef aTheRows String  ByRef sCurrentRowID tWebGroupConfig[]  ByRef aTheGroups tWebGroupHeader[]  ByRef aTheGroupHeaders
+                Integer iNameCol iValueCol iPosCol iMatch
+                tMatch[] aMatches
+                
+                Get piColumnId of oNameCol to iNameCol
+                Get piColumnId of oValueCol to iValueCol
+                Get piColumnId of oPositionCol to iPosCol
+                
+                Get paMatches to aMatches
+                
+                For iMatch from 0 to (SizeOfArray(aMatches) - 1)
+                    Move iMatch to aTheRows[iMatch].sRowId
+                    If (aMatches[iMatch].sName <> "") ;
+                        Move (SFormat('<span class="%3" style="background-color: %1">%2</span>', aMatches[iMatch].sColor, HtmlEncode(aMatches[iMatch].sName), If(aMatches[iMatch].sName = "full_match", "ColFullMatch", "ColGroupMatch"))) to aTheRows[iMatch].aCells[iNameCol].sValue
+                    Else ;
+                        Move "" to aTheRows[iMatch].aCells[iNameCol].sValue
+                        
+                    Move aMatches[iMatch].sValue to aTheRows[iMatch].aCells[iValueCol].sValue
+                    
+                    If (aMatches[iMatch].iFromChar > 0) ;
+                        Move (SFormat("%1 - %2", aMatches[iMatch].iFromChar, aMatches[iMatch].iToChar)) to aTheRows[iMatch].aCells[iPosCol].sValue
+                    Else ;
+                        Move "" to aTheRows[iMatch].aCells[iPosCol].sValue
+                Loop
+            End_Procedure
+        End_Object
+
+        Object oExecBtn is a cWebButton
+            Set piColumnSpan to 0
+            Set psCaption to "Execute!"
+            Set piRowIndex to 0
+            Set piColumnIndex to 8
+            Set pbFillHeight to True
+        
+            Procedure OnClick
+                Send ExecuteRegex
+            End_Procedure
+        End_Object
+
+        Object oOptionsMenuButton is a cWebMenuButton
+            Set psCaption to "Config"
+            Set psMenuCSSClass to "WebMenuButton_Arrow"
+            Set piMenuWidth to 220
+            Set pbMenuShowCaption to False
+            Set piRowIndex to 0
+            Set piColumnIndex to 9
+            Set pbFillHeight to True
+            Set psCSSClass to "WebIcon_Edit"
+
+            Object oOptAnchored is a cWebMenuItemCheckbox
+                Set pbChecked to (pbAnchored(oRegEx))
+                Set psCaption to "Anchored Matching"
+                Set psToolTip to "If true pattern anchoring is forced."
+                
+                Set psGroupCaption to "Options"
+                Set pbBeginGroup to True
+            End_Object
+
+            Object oOptGreedy is a cWebMenuItemCheckbox
+                Set pbChecked to (pbGreedy(oRegEx))
+                Set psCaption to "Greedy"
+                Set psToolTip to "Set to false invert greediness of quantifiers."
+            End_Object
+
+            Object oOptIgnoreCase is a cWebMenuItemCheckbox
+                Set pbChecked to (pbIgnoreCase(oRegEx))
+                Set psCaption to "Ignore case"
+                Set psToolTip to "If set to true the matching becomes case insensitive."
+            End_Object
+
+            Object oOptIgnoreWhiteSpace is a cWebMenuItemCheckbox
+                Set pbChecked to (pbIgnorePatternWhitespace(oRegEx))
+                Set psCaption to "Ignore pattern whitespace"
+                Set psToolTip to "Set to true to ignore white space and # comments in the pattern."
+            End_Object
+
+            Object oOptMultiline is a cWebMenuItemCheckbox
+                Set pbChecked to (pbMultiLine(oRegEx))
+                Set psCaption to "Multiline"
+                Set psToolTip to "If true  ^ and $ match newlines within data."
+            End_Object
+
+            Object oOptUnicodeMatching is a cWebMenuItemCheckbox
+                Set pbChecked to (pbUnicodeProperties(oRegEx))
+                Set psCaption to "Unicode Properties"
+                Set psToolTip to "If true Unicode properties are used for \d, \w, etc."
+            End_Object
+
+            Object oFuncMatch is a cWebMenuItemCheckbox
+                Set pbBeginGroup to True
+                Set psGroupCaption to "Function"
+                Set pbChecked to False
+                
+                Set psCaption to "Match"
+                Set psToolTip to "Match will find the first match and report its position in the string (0 if no match)."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpMatch
+                End_Procedure
+            End_Object
+
+            Object oFuncMatchAll is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "MatchAll"
+                Set psToolTip to "MatchAll will find all matches and report their values. Only the full matches will be returned."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpMatchAll
+                End_Procedure
+            End_Object
+
+            Object oFuncMatchAllCallback is a cWebMenuItemCheckbox
+                Set psCaption to "MatchAllCallback"
+                Set psToolTip to "MatchAllCallback will find all matches (including full matches and group matches) and call a procedure with the match name, value and offset."
+                Set pbChecked to True
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpMatchAllCallback
+                End_Procedure
+            End_Object
+
+            Object oFuncMatchAllGroups is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "MatchAllGroups"
+                Set psToolTip to "MatchAllGroups will find all matches (including full matches and group matches) and return them in a two dimensional array."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpMatchAllGroups
+                End_Procedure
+            End_Object
+
+            Object oFuncMatchAllOffSets is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "MatchAllOffsets"
+                Set psToolTip to "MatchAllOffsets with bGroups false will return the offsets of all full matches."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpMatchAllOffsets
+                End_Procedure
+            End_Object
+            
+            Object oFuncMatchAllGroupOffsets is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "MatchAllOffsets (+groups)"
+                Set psToolTip to "MatchAllOffsets with bGroups to true will return the offsets of all full matches and individual matching groups."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpMatchAllGroupsOffsets
+                End_Procedure
+            End_Object
+            
+            Object oFuncRFind is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "RMatch"
+                Set psToolTip to "RMatch finds the last match and return its offset."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpRMatch
+                End_Procedure
+            End_Object
+
+            Object oFuncSplit is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "Split"
+                Set psToolTip to "Splits on each match."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpSplit
+                End_Procedure
+            End_Object
+            
+            Object oFuncSubstitute is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "Substitute"
+                Set psToolTip to "Substitute replaces the first match it finds with the provided value."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpSubstitute
+                End_Procedure
+            End_Object
+            
+            Object oFuncSubstituteAll is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "SubstituteAll"
+                Set psToolTip to "SubstituteAll replaces all matches it can find with the provided value."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpSubstituteAll
+                End_Procedure
+            End_Object
+            
+            Object oFuncSubstituteExCallback is a cWebMenuItemCheckbox
+                Set pbChecked to False
+                Set psCaption to "SubstituteExCallback"
+                Set psToolTip to "SubstituteExCallback calls a function for every match passing the group name, value and offsets. The string returned by the function is used as the substitute value."
+                
+                Procedure OnClick
+                    Delegate Send UpdateOperation regExOpSubstituteExCallback
+                End_Procedure
+            End_Object
+            
+            Procedure UpdateOperation Integer eOperation
+                WebSet peOperation of oDemoRegEx to eOperation
+                
+                WebSet pbChecked of oFuncMatchAllCallback to (eOperation = regExOpMatchAllCallback)
+                WebSet pbChecked of oFuncMatchAllOffSets to (eOperation = regExOpMatchAllOffsets)
+                WebSet pbChecked of oFuncMatch to (eOperation = regExOpMatch)
+                WebSet pbChecked of oFuncMatchAll to (eOperation = regExOpMatchAll)
+                WebSet pbChecked of oFuncMatchAllGroups to (eOperation = regExOpMatchAllGroups)
+                WebSet pbchecked of oFuncMatchAllGroupOffsets to (eOperation = regExOpMatchAllGroupsOffsets)
+                WebSet pbChecked of oFuncRFind to (eOperation = regExOpRMatch)
+                WebSet pbChecked of oFuncSplit to (eOperation = regExOpSplit)
+                WebSet pbChecked of oFuncSubstitute to (eOperation = regExOpSubstitute)
+                WebSet pbChecked of oFuncSubstituteAll to (eOperation = regExOpSubstituteAll)
+                WebSet pbChecked of oFuncSubstituteExCallback to (eOperation = regExOpSubstituteExCallback)
+                
+                WebSet pbEnabled of oReplaceWithFrm to (eOperation = regExOpSubstitute or eOperation = regExOpSubstituteAll)
+            End_Procedure
+            
+            Procedure OnLoad
+                Send UpdateOperation regExOpMatchAllCallback
+            End_Procedure
+        End_Object
+
+        Object oTestStringFrm is a cWebEdit
+            Set piColumnSpan to 5
+            Set psLabel to "Test String:"
+            Set piRowIndex to 2
+            Set piColumnIndex to 0
+            Set pbFillHeight to True
+            Set peLabelPosition to lpTop
+            Set psValue to """
+                {
+                  "firstName": "John",
+                  "lastName": "Smith",
+                  "age": 25,
+                  "address": {
+                    "streetAddress": "21 2nd Street",
+                    "city": "New York",
+                    "state": "NY",
+                    "postalCode": "10021"
+                  },
+                  "phoneNumber": [
+                    {
+                      "type": "home",
+                      "number":    "212 555-1239"
+                    },
+                    {
+                      "type": "fax",
+                      "number": "646 555-4567"
+                    }
+                  ],
+                  "gender": {
+                    "type": "male"
+                  }
+                }
+                """
+            Set piRowSpan to 2
+        End_Object
+        
+        // place controls here
+        // Your view will grow as controls are added
+
+        Object oOutputHtml is a cWebHtmlBox
+            Set piColumnSpan to 5
+            Set psHtml to "Result.."
+            Set piRowIndex to 3
+            Set piColumnIndex to 5
+            Set pbShowBorder to True
+            Set pbFillHeight to True
+            Set psBackgroundColor to "#FFFFFF"
+            Set peLabelPosition to lpTop
+            Set pbShowLabel to True
+            Set psLabel to "Visualized output:"
+        End_Object
+        
+    End_Object 
+    
+    /*
+    Callback procedure for MatchAllCallback which stores the match details in paMatches.
+    */
+    Procedure MatchCallback String sName String sValue Integer iFromChar Integer iToChar
+        tMatch[] aMatches
+        Integer iIndex
+        
+        Get paMatches to aMatches
+        Move (SizeOfArray(aMatches)) to iIndex
+        
+        Move sName to aMatches[iIndex].sName    
+        Move sValue to aMatches[iIndex].sValue
+        Move iFromChar to aMatches[iIndex].iFromChar
+        Move iToChar to aMatches[iIndex].iToChar
+        Get GenerateColor sName aMatches to aMatches[iIndex].sColor
+        
+        Set paMatches to aMatches
+    End_Procedure
+
+    /*
+    Callback function for SubstituteExCallback which stores the match details in paMatches and replaces the 
+    value with the HTML highlighting code.
+    */
+    Function SubstituteCallback String sName String sValue Integer iFromChar Integer iToChar Returns String
+        tMatch[] aMatches
+        Integer iIndex
+        String sOpenHtml
+        
+        Get paMatches to aMatches
+        Move (SizeOfArray(aMatches)) to iIndex
+        
+        Move sName to aMatches[iIndex].sName    
+        Move sValue to aMatches[iIndex].sValue
+        Move iFromChar to aMatches[iIndex].iFromChar
+        Move iToChar to aMatches[iIndex].iToChar
+        Get GenerateColor sName aMatches to aMatches[iIndex].sColor
+
+        Set paMatches to aMatches
+        
+        Get GenerateMatchOpenHtml aMatches[iIndex] to sOpenHtml
+        
+        Function_Return (sOpenHtml + sValue + '</span>')
+    End_Function
+    
+    /*
+    Returns an HTML color code for the match based on the name and the already existing matches. Matches with 
+    the same name will alterate between two similar colors.
+    */
+    Function GenerateColor String sName tMatch[] aMatches Returns String
+        Integer iPos
+        tMatch search
+        Boolean bOdd
+        
+        Move sName to search.sName
+        
+        Move (SearchArray(search, aMatches)) to iPos
+        Move (Mod(CountArray(search, aMatches), 2) = 0) to bOdd
+        
+        If (iPos = 0) ;
+            Function_Return (If(bOdd,  "#3CCDC6", "#7DDED9"))
+        If (iPos = 1) ;
+            Function_Return (If(bOdd,  "#21DEE8", "#15C2CB"))
+        If (iPos = 2) ;
+            Function_Return (If(bOdd,  "#8AB1D0", "#B6CEE2"))
+        If (iPos = 3) ;
+            Function_Return  (If(bOdd, "#AEECEF", "#77DFE4"))
+        If (iPos = 4) ;
+            Function_Return (If(bOdd,  "#8DAEE2", "#BED1EE"))
+        If (iPos = 5) ;
+            Function_Return (If(bOdd,  "#1a80cc", "#6dc545"))
+        If (iPos = 6) ;
+            Function_Return (If(bOdd, "#cce3f4", "#32800f"))
+        If (iPos = 7) ;
+            Function_Return  (If(bOdd, "#0067b2", "#a4db8b"))
+        If (iPos = 7) ;
+            Function_Return (If(bOdd,  "#0072c6", "#7fcd5c"))
+        If (iPos = 8) ;
+            Function_Return  (If(bOdd, "#005b9e", "#daf1d0"))
+            
+        Function_Return  (If(bOdd, "#e6f1f9", "#edf8e8"))
+    End_Function    
+    
+    Function GenerateMatchOpenHtml tMatch match Returns String
+        String sCssClass
+        
+        If (match.sName = "full_match") ;
+            Move "FullMatch" to sCssClass
+        Else ;
+            Move "GroupMatch" to sCssClass
+        
+        Function_Return (SFormat('<span class="%1" title="%2" style="background-color: %3">', sCssClass, HtmlEncode(match.sName), match.sColor))
+    End_Function
+    
+    /*
+    Generates HTML for the teststring based on the paMatches values. This function is used when with the 
+    MatchAllCallback operation.
+    */
+    Function GenerateHtml String sTestString Returns String
+        tMatch[] aMatches
+        String[] aDone
+        Integer iPos iNextPos iMatch
+        String sHtml sMatchOpen
+        Boolean bOdd
+        
+        Get paMatches to aMatches
+        Move 0 to iPos
+        Move 1 to iNextPos
+        
+        While (iPos <= Length(sTestString))
+            // Determine next html insertion pos
+            Move (Length(sTestString) + 1) to iNextPos
+        
+            For iMatch from 0 to (SizeOfArray(aMatches) - 1)
+                If (aMatches[iMatch].iFromChar > iPos and aMatches[iMatch].iFromChar <= iNextPos) ;
+                    Move aMatches[iMatch].iFromChar to iNextPos
+                If (aMatches[iMatch].iToChar > iPos and aMatches[iMatch].iToChar <= iNextPos) ;
+                    Move aMatches[iMatch].iToChar to iNextPos
+            Loop
+            
+            If (iPos = 0) ;
+                Increment iPos
+                
+            // Append in between tag
+            Append sHtml (HtmlEncodeNoCrLf(Mid(sTestString, iNextPos - iPos, iPos)))
+            Move iNextPos to iPos
+            
+            // Add opening / closing tags
+            For iMatch from 0 to (SizeOfArray(aMatches) - 1)
+                If (aMatches[iMatch].iFromChar = iPos) Begin
+                    Get GenerateMatchOpenHtml aMatches[iMatch] to sMatchOpen
+                    Append sHtml sMatchOpen
+                End
+                If (aMatches[iMatch].iToChar = iPos) ;
+                    Append sHtml "</span>"
+            Loop    
+        Loop
+        
+        Function_Return sHtml
+    End_Function
+    
+    /*
+    Performs the operation.
+    */
+    Procedure ExecuteRegex
+        String sRegex sTestString sHtml sMessage sReplaceWith
+        Integer iMatches iMatch iFullMatch iSubMatch
+        Boolean bValue 
+        Integer eOperation iOffset
+        tMatch[] aEmpty aMatches
+        String[] aFindAll aSplit
+        String[][] aFindAllGroups
+        Integer[][] aAllOffsets
+        
+        //  Configure the regex object
+        WebGet pbChecked of oOptMultiline to bValue
+        Set pbMultiline of oRegEx to bValue
+        
+        WebGet pbChecked of oOptIgnoreCase to bValue
+        Set pbIgnoreCase of oRegEx to bValue
+        
+        WebGet pbChecked of oOptGreedy to bValue
+        Set pbGreedy of oRegEx to bValue
+        
+        WebGet pbChecked of oOptIgnoreWhiteSpace to bValue
+        Set pbIgnorePatternWhitespace of oRegEx to bValue
+        
+        WebGet pbChecked of oOptAnchored to bValue
+        Set pbAnchored of oRegEx to bValue
+        
+        WebGet pbChecked of oOptUnicodeMatching to bValue
+        Set pbUnicodeProperties of oRegEx to bValue
+        
+        WebGet psValue of oRegExFrm to sRegex
+        WebGet psValue of oTestStringFrm to sTestString 
+        
+        Set psExpression of oRegEx to sRegex
+        
+        //  Execute the operation
+        Set paMatches to aEmpty
+        WebGet peOperation to eOperation
+        Case Begin
+            Case (eOperation = regExOpMatch)
+                Get Match of oRegEx sTestString to iOffset
+    
+                Set paMatches to aEmpty
+                If (iOffset > 0) Begin
+                    Move (SFormat("Match found a match at character %1!", iOffset)) to sMessage
+                    
+                    Move (Insert("<b>[*]</b>", sTestString, iOffset)) to sHtml
+                End
+                Else Begin
+                    Move (SFormat("Match did not find a match and returned %1!", iOffset)) to sMessage
+                    
+                    Move (HtmlEncodeNoCrLf(sTestString)) to sHtml
+                End
+                Case Break
+            Case (eOperation = regExOpRMatch)
+                Get RMatch of oRegEx sTestString to iOffset
+    
+                Set paMatches to aEmpty
+                If (iOffset > 0) Begin
+                    Move (SFormat("RMatch found a match at character %1!", iOffset)) to sMessage
+                    
+                    Move (Insert("<b>[*]</b>", sTestString, iOffset)) to sHtml
+                End
+                Else Begin
+                    Move (SFormat("RMatch did not find a match and returned %1!", iOffset)) to sMessage
+                    
+                    Move (HtmlEncodeNoCrLf(sTestString)) to sHtml
+                End
+                Case Break
+            Case (eOperation = regExOpMatchAll)
+                Get MatchAll of oRegEx sTestString to aFindAll
+                
+                For iMatch from 0 to (SizeOfArray(aFindAll) - 1)
+                    Move aFindAll[iMatch] to aMatches[iMatch].sValue
+                    Move "#ffffff" to aMatches[iMatch].sColor
+                Loop
+                
+                Set paMatches to aMatches
+                Move (SFormat("MatchAll found %1 matches!", (SizeOfArray(aMatches)))) to sMessage
+                Move (HtmlEncodeNoCrLf(sTestString)) to sHtml
+                Case Break
+            Case (eOperation = regExOpMatchAllGroups)
+                Get MatchAllGroups of oRegEx sTestString to aFindAllGroups
+                
+                For iFullMatch from 0 to (SizeOfArray(aFindAllGroups) - 1)
+                    Move "full_match" to aMatches[iMatch].sName
+                    Move aFindAllGroups[iFullMatch][0] to aMatches[iMatch].sValue
+                    Get GenerateColor aMatches[iMatch].sName aMatches to aMatches[iMatch].sColor
+                    Increment iMatch
+                    
+                    Move 1 to iSubMatch 
+                    While (iSubMatch + 1 < SizeOfArray(aFindAllGroups[iFullMatch]))
+                        Move aFindAllGroups[iFullMatch][iSubMatch] to aMatches[iMatch].sName
+                        Move aFindAllGroups[iFullMatch][iSubMatch + 1] to aMatches[iMatch].sValue
+                        Get GenerateColor aMatches[iMatch].sName aMatches to aMatches[iMatch].sColor
+                        Increment iMatch
+                        
+                        Move (iSubMatch + 2) to iSubMatch
+                    Loop
+                Loop
+                
+                Set paMatches to aMatches
+                Move (SFormat("MatchAllGroups found %1 matches!", (SizeOfArray(aMatches)))) to sMessage
+                Move (HtmlEncodeNoCrLf(sTestString)) to sHtml
+                Case Break
+            Case (eOperation = regExOpMatchAllCallback)
+                Get MatchAllCallback of oRegEx sTestString Self (RefProc(MatchCallback)) to iMatches
+                Get GenerateHtml sTestString to sHtml
+                Get paMatches to aMatches
+                Move (SFormat("MatchAllCallback found %1 matches!", (SizeOfArray(aMatches)))) to sMessage
+                Case Break
+            Case (eOperation = regExOpMatchAllGroupsOffsets)
+            Case (eOperation = regExOpMatchAllOffsets)
+                Get MatchAllOffsets of oRegEx sTestString (eOperation = regExOpMatchAllGroupsOffsets) to aAllOffsets
+                
+                For iMatch from 0 to (SizeOfArray(aAllOffsets) - 1)
+                    Move aAllOffsets[iMatch][0] to aMatches[iMatch].iFromChar
+                    Move aAllOffsets[iMatch][1] to aMatches[iMatch].iToChar
+                    
+                    Move (Mid(sTestString,  aMatches[iMatch].iToChar - aMatches[iMatch].iFromChar,aMatches[iMatch].iFromChar)) to aMatches[iMatch].sValue
+                    Move (If(eOperation = regExOpMatchAllGroupsOffsets, "match", "full_match")) to aMatches[iMatch].sName
+                    Get GenerateColor aMatches[iMatch].sName (&aMatches) to aMatches[iMatch].sColor
+                Loop
+                
+                Set paMatches to aMatches
+                
+                Get GenerateHtml sTestString to sHtml
+                Move (SFormat("MatchAllOffsets found %1 matches!", SizeOfArray(aAllOffsets))) to sMessage
+                Case Break
+            Case (eOperation = regExOpSubstitute)
+            WebGet psValue of oReplaceWithFrm to sReplaceWith
+                Get Substitute of oRegEx sTestString sReplaceWith to sHtml
+                
+                Move "Substitute executed!" to sMessage
+                Case Break
+            Case (eOperation = regExOpSubstituteAll)
+                WebGet psValue of oReplaceWithFrm to sReplaceWith
+                Get SubstituteAll of oRegEx sTestString sReplaceWith to sHtml
+                
+                Move "SubstituteAll executed!" to sMessage
+                Case Break
+            Case (eOperation = regExOpSubstituteExCallback)
+                Get SubstituteExCallback of oRegEx sTestString Self (RefFunc(SubstituteCallback)) to sHtml
+                Get paMatches to aMatches
+                Move (SFormat("SubstituteExCallback found %1 matches!", (SizeOfArray(aMatches)))) to sMessage
+                Case Break
+            Case (eOperation = regExOpSplit)
+                Get Split of oRegEx sTestString to aSplit
+                
+                Move (SFormat("Split returned the string in %1 pieces!", (SizeOfArray(aSplit)))) to sMessage
+                Move (StrJoinFromArray(aSplit, "<b>||</b>")) to sHtml
+                
+                For iMatch from 0 to (SizeOfArray(aSplit) - 1)
+                    Move aSplit[iMatch] to aMatches[iMatch].sValue
+                    Move iMatch to aMatches[iMatch].sName
+                Loop
+                Set paMatches to aMatches
+                Case Break
+            Case Else
+                Move "No result.." to sHtml
+                Move "Function not implemented!" to sMessage
+        Case End
+        
+        //  Update UI
+        Send GridRefresh of oMatchesList
+        
+        Send UpdateHtml of oOutputHtml ('<pre>' + sHtml + '</pre>')
+        
+        Send ShowInfoBox sMessage "Result"
+    End_Procedure
+
+    Procedure OnSubmit
+        Send ExecuteRegex
+    End_Procedure
+
+End_Object

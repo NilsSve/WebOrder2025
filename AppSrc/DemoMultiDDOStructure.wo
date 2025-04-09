@@ -1,0 +1,218 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebTabContainer.pkg
+Use cWebTabPage.pkg
+Use cWebEdit.pkg
+Use cWebCheckbox.pkg
+Use cWebGroup.pkg
+Use cCustomerDataDictionary.dd
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+Use cWebHtmlBox.pkg
+
+Object oDemoMultiDDOStructure is a cWebView
+    Set piWidth to 900
+    Set psCaption to "Multi DDO Structure"
+    Set piColumnCount to 10
+
+    Object oWebHtmlBox1 is a cWebHtmlBox
+        Set piColumnSpan to 0
+        Set psHtml to """
+            <p>This view demonstrates the ability to have multiple separate DDO structures. Each group has its own DDO structure that functions separate from the other structures. The inactive customers has a constrain which is only applied within that group. The <a href="https://docs.dataaccess.com/dataflexhelp/#t=mergedProjects%2FVDFClassRef%2FcWebGroup.htm">cWebGroup</a> and <a href="https://docs.dataaccess.com/dataflexhelp/#t=mergedProjects%2FVDFClassRef%2FcWebCard.htm">cWebCard</a> (and its subclasses like <a href="https://docs.dataaccess.com/dataflexhelp/#t=mergedProjects%2FVDFClassRef%2FcWebTabPage.htm">cWebTabPage</a>) can host a DDO structure.</p>
+            <p>Important to note is that in the web DDO’s need to be synchronized, and DD’s part of a structure that is set as the Main_DD for a DDO host will automatically be synchronized. DD’s or structures not related to a Main_DD need to be registered for synchronization using the <a href="https://docs.dataaccess.com/dataflexhelp/#t=mergedProjects%2FVDFClassRef%2FcWebView-Procedure-AddDDOStructure.htm">AddDDOStructure</a> procedure of <a href="https://docs.dataaccess.com/dataflexhelp/#t=mergedProjects%2FVDFClassRef%2FcWebView.htm">cWebView</a>.</p>
+            """
+    End_Object
+    
+    Object oCustomerContainer is a cWebGroup
+        Object oCustomer_DD is a cCustomerDataDictionary
+        End_Object
+
+        Set Main_DD to oCustomer_DD
+        Set Server to oCustomer_DD
+
+        Set psCaption to "All Customers:"
+        Set piColumnCount to 9
+        Set piColumnSpan to 5
+        
+        Set pbCollapsible to True
+        
+        Object oCustomer_Customer_Number is a cWebForm
+            Entry_Item Customer.Customer_Number
+            Set piColumnSpan to 0
+            Set psLabel to "Customer Number:"
+            Set peAlign to alignLeft
+        End_Object
+        
+        Object oCustomer_Name is a cWebForm
+            Entry_Item Customer.Name
+            Set piColumnSpan to 0
+            Set psLabel to "Customer Name:"
+        End_Object
+        
+        Object oCustomer_Address is a cWebForm
+            Entry_Item Customer.Address
+            Set piColumnSpan to 0
+            Set psLabel to "Street Address:"
+        End_Object
+        
+        Object oCustomer_City is a cWebForm
+            Entry_Item Customer.City
+            Set piColumnSpan to 0
+            Set psLabel to "City:"
+        End_Object
+        
+        Object oCustomer_Comments is a cWebEdit
+            Entry_Item Customer.Comments
+            Set piColumnSpan to 0
+            Set pbShowLabel to False
+        End_Object
+    End_Object
+    
+    Object oInactiveCustomerContainer is a cWebGroup
+        Object oCustomer_DD is a cCustomerDataDictionary
+            Procedure OnConstrain
+                Constrain Customer.Status eq "N"
+            End_Procedure
+        End_Object
+
+        Set Main_DD to oCustomer_DD
+
+        Set psCaption to "Inactive Customers:"
+        Set piColumnIndex to 5
+        Set piColumnCount to 9
+        
+        Set Server to oCustomer_DD
+        Set pbCollapsible to True
+        
+        Object oCustomer_Customer_Number is a cWebForm
+            Entry_Item Customer.Customer_Number
+            Set piColumnSpan to 0
+            Set psLabel to "Customer Number:"
+            Set peAlign to alignLeft
+        End_Object
+        
+        Object oCustomer_Name is a cWebForm
+            Entry_Item Customer.Name
+            Set piColumnSpan to 0
+            Set psLabel to "Customer Name:"
+        End_Object
+        
+        Object oCustomer_Address is a cWebForm
+            Entry_Item Customer.Address
+            Set piColumnSpan to 0
+            Set psLabel to "Street Address:"
+        End_Object
+        
+        Object oCustomer_City is a cWebForm
+            Entry_Item Customer.City
+            Set piColumnSpan to 0
+            Set psLabel to "City:"
+        End_Object
+        
+        Object oCustomer_Comments is a cWebEdit
+            Entry_Item Customer.Comments
+            Set piColumnSpan to 0
+            Set pbShowLabel to False
+        End_Object
+        
+        Object oCustomer_Status is a cWebCheckBox
+            Entry_Item Customer.Status
+            Set piColumnSpan to 0
+            Set psCaption to "Active Status"
+            Set pbShowLabel to True
+        End_Object
+    End_Object
+    
+    Object oVendorContainer is a cWebGroup
+        Object oVendor_DD is a cVendorDataDictionary
+        End_Object
+
+        Set Main_DD to oVendor_DD
+        Set Server to oVendor_DD
+
+        Set psCaption to "Vendor:"
+        Set piColumnSpan to 5
+        Set piColumnCount to 9
+        
+        Set pbCollapsible to True
+        
+        Object oVendor_ID is a cWebForm
+            Entry_Item Vendor.ID
+            Set piColumnSpan to 0
+            Set psLabel to "Vendor ID:"
+            Set peAlign to alignLeft
+        End_Object
+        
+        Object oVendor_Name is a cWebForm
+            Entry_Item Vendor.Name
+            Set piColumnSpan to 0
+            Set psLabel to "Vendor Name:"
+        End_Object
+        
+        Object oVendor_Address is a cWebForm
+            Entry_Item Vendor.Address
+            Set piColumnSpan to 0
+            Set psLabel to "Street Address:"
+        End_Object
+        
+        Object oVendor_City is a cWebForm
+            Entry_Item Vendor.City
+            Set piColumnSpan to 0
+            Set psLabel to "City:"
+        End_Object
+    End_Object
+    
+    Object oInventoryContainer is a cWebGroup
+        Object oVendor_DD is a cVendorDataDictionary
+        End_Object
+
+        Object oInventory_DD is a cInventoryDataDictionary
+            Set DDO_Server to oVendor_DD
+        End_Object
+
+        Set Main_DD to oInventory_DD
+        Set Server to oInventory_DD
+
+        Set psCaption to "Inventory:"
+        Set piColumnIndex to 5
+        Set piColumnCount to 9
+        
+        Set pbCollapsible to True
+        
+        Object oInventory_Item_ID is a cWebForm
+            Entry_Item Inventory.Item_ID
+            Set piColumnSpan to 0
+            Set psLabel to "Inventory Item:"
+            Set peAlign to alignLeft
+        End_Object
+        
+        Object oInventory_Description is a cWebForm
+            Entry_Item Inventory.Description
+            Set piColumnSpan to 0
+            Set psLabel to "Description:"
+        End_Object
+        
+        Object oVendor_Name1 is a cWebForm
+            Entry_Item Vendor.Name
+            Set piColumnSpan to 0
+            Set psLabel to "Vendor:"
+        End_Object
+        
+        Object oInventory_Unit_Price is a cWebForm
+            Entry_Item Inventory.Unit_Price
+            Set piColumnSpan to 0
+            Set psLabel to "Unit Price:"
+            Set peAlign to alignLeft
+        End_Object
+        
+        Object oInventory_On_Hand is a cWebForm
+            Entry_Item Inventory.On_Hand
+            Set piColumnSpan to 0
+            Set psLabel to "On Hand:"
+            Set peAlign to alignLeft
+        End_Object
+        
+    End_Object
+End_Object
+

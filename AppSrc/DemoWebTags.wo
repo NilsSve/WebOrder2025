@@ -1,0 +1,132 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebTagsForm.pkg
+Use cWebButton.pkg
+Use cWebGroup.pkg
+Use cWebCheckbox.pkg
+Use cWebSpacer.pkg
+Use cWebHtmlBox.pkg
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+
+Object oDemoWebTags is a cWebView
+    Object oVendor_DD is a cVendorDataDictionary
+    End_Object
+
+    Object oInventory_DD is a cInventoryDataDictionary
+        Set DDO_Server to oVendor_DD
+    End_Object
+
+    Set Main_DD to oInventory_DD
+    Set Server to oInventory_DD
+
+    Set piWidth to 700
+    Set psCaption to "WebTagsForm Demo"
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oWebHtmlBox1 is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to "The <b>cWebTagsForm</b> control is a control that allows the selection of multiple entities (tags), visually represented as boxes. The control is very versatile and allows selection from a list of items as well as inline creation of items. Seeding the list of items is done by creating an object based on the <b>cSelectionSource</b> class that represents a list of selectable items."
+        End_Object
+
+        Object oWebSpacer1 is a cWebSpacer
+            Set piHeight to 30
+        End_Object
+
+        Object oWebTagsFormBasic is a cWebTagsForm
+            Set psLabel to "Basic Tags (no selection):"
+            Set piColumnSpan to 9
+            Set psValue to "DataFlex, CSS, SQL"
+            Set piLabelOffset to 160
+            Set pbServerOnTagClick to True
+            Set pbPromptButton to False
+
+            Procedure OnTagClick tSelectionItem Tag
+                Send ShowInfoBox (SFormat("You clicked on tag '%1'", Tag.aValues[0])) "Tag click!"
+            End_Procedure
+        End_Object
+
+        Object oButtonAddPsValue is a cWebButton
+            Set piColumnSpan to 3
+            Set psCaption to "Add Using psValue"
+            Set piColumnIndex to 3
+        
+            Procedure OnClick
+                String sVal sSeparator
+                WebGet psValue of oWebTagsFormBasic to sVal
+                WebGet psSeparator of oWebTagsFormBasic to sSeparator
+                Move (If(sVal <> "", sVal + sSeparator, "") + "Javascript") to sVal
+                
+                WebSet psValue of oWebTagsFormBasic to sVal   
+            End_Procedure
+        End_Object
+
+        Object oButtonUpdateTags is a cWebButton
+            Set piColumnSpan to 3
+            Set psCaption to "Add Using UpdateTags"
+            Set piColumnIndex to 6
+        
+            Procedure OnClick
+                String[] aTags
+                Get GetTags of oWebTagsFormBasic to aTags
+                Move "HTML" to aTags[SizeOfArray(aTags)]
+                Send UpdateTags of oWebTagsFormBasic aTags
+            End_Procedure
+        End_Object
+
+        Object oButtonRemoveTag is a cWebButton
+            Set piColumnSpan to 3
+            Set psCaption to "Remove First Tag"
+            Set piColumnIndex to 3
+        
+            Procedure OnClick
+                String[] aTags
+                
+                Get GetTags of oWebTagsFormBasic to aTags
+                If (SizeOfArray(aTags) > 0) Begin
+                    Move (RemoveFromArray(aTags, 0)) to aTags
+                    Send UpdateTags of oWebTagsFormBasic aTags
+                End
+            End_Procedure
+        End_Object
+
+        Object oWebSpacer2 is a cWebSpacer
+            Set piHeight to 30
+        End_Object
+
+        Object oWebTagsFormTableSource is a cWebTagsForm
+            Set piColumnSpan to 9
+            Set psLabel to "Table Source (Inventory):"
+            Set piLabelOffset to 160
+            Set pbAllowCreate to False
+            
+            Object oSelectionSource is a cSelectionSource
+                Entry_Item Inventory.Item_ID
+                Set Server to oInventory_DD
+            End_Object
+        End_Object
+        
+        Object oWebTagsFormStaticSource is a cWebTagsForm
+            Set piColumnSpan to 9
+            Set psLabel to "Static Source:"
+            Set psValue to "DataFlex, SQL"
+            Set piLabelOffset to 160
+            
+            Object oSelection is a cSelectionSource
+                Set pbAllData to True
+                
+                Procedure OnLoadAllItems tSelectionItem[] ByRef aItems
+                    Move "DataFlex" to aItems[0].aValues[0]
+                    Move "CSS" to aItems[1].aValues[0]
+                    Move "HTML" to aItems[2].aValues[0]
+                    Move "JavaScript" to aItems[3].aValues[0]
+                    Move "JSON" to aItems[4].aValues[0]
+                    Move "SQL" to aItems[5].aValues[0]
+                End_Procedure
+            End_Object
+        End_Object
+    End_Object 
+End_Object

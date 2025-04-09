@@ -1,0 +1,298 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebGroup.pkg
+Use cWebMenuGroup.pkg
+Use cWebMenuItem.pkg
+Use cWebFloatingPanel.pkg
+Use cWebButton.pkg
+Use cWebHtmlBox.pkg
+Use cWebSuggestionForm.pkg
+Use cWebList.pkg
+Use cWebColumnHighlight.pkg
+
+Use cCustomerDataDictionary.dd
+
+Object oDemoSearchWithFP is a cWebView
+    Object oCustomerDataDictionary is a cCustomerDataDictionary
+        Procedure OnConstrain
+            String sFilter
+            
+            Forward Send OnConstrain
+            
+            If (not(AppSynching(ghoWebApp))) Begin
+                WebGet psFilterValue of oDemoSearchWithFP to sFilter
+                
+                If (Trim(sFilter) <> "") Begin
+                    Constrain Customer.Name contains sFilter
+                End
+            End
+            
+        End_Procedure
+        
+    End_Object
+    
+    Set Main_DD to oCustomerDataDictionary
+    Set Server to oCustomerDataDictionary
+    
+    { WebProperty=Server }
+    Property String psFilterValue ""
+    
+    Procedure Search String sSearch
+        WebSet psFilterValue of oDemoSearchWithFP to sSearch
+        
+        Send Show of oSuggestionsPanel
+        WebSet psHighlight of oCustomerName to sSearch
+        
+        Send Rebuild_Constraints of oCustomerDataDictionary
+        Send FindFromTop of oWebList1
+    End_Procedure
+    
+    Set psCaption to "Search with Floating Panel"
+    Set piMaxWidth to 700
+    Set piColumnCount to 12
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oWebSuggestionForm1 is a cWebSuggestionForm
+            Set piColumnSpan to 9
+            Set psLabel to "Search:"
+            Set piColumnIndex to 1
+            Set pbPromptButton to True
+            
+            Set pbShowResults to False
+            Set pbClientRefinement to False
+            Set piTypeTimeout to 40
+            Set pbServerOnHideSuggestions to True
+            
+            Procedure OnPrompt
+                String sSearch
+                
+                WebGet psValue to sSearch
+                
+                Send Focus
+                Send Search sSearch
+            End_Procedure
+            
+            Procedure OnFindSuggestions String sSearch tSuggestion[]  ByRef aSuggestions
+                Send Search sSearch
+            End_Procedure
+            
+            Procedure OnHideSuggestions
+                Forward Send OnHideSuggestions
+                
+                Send Hide of oSuggestionsPanel
+            End_Procedure
+        End_Object
+        
+        
+        Object oWebHtmlBox2 is a cWebHtmlBox
+            Set piColumnSpan to 12
+            Set psHtml to "<h1>Popup Search</h1><p>Demo combining several new features of 19.0 into a search result box that pops up While typing text into a cWebSuggestionForm.</p><b>Floating Panel</b><p>The floating panel is used in <b>fpFloatByControl</b> mode to display the results. The CSS Class <b>WebFlPnl_NoWhitespace</b> makes it Show no whitespace around the results.</p><b>Suggestion Form</b><p>The suggestion form is used to capture the search keywords. The <b>pbShowResults</b> Property disables the default suggestion display and allows a custom display of search results to be used While using the keypress logic of the suggestion form.</p><b>Highlight Column</b><p>The customer name is displayed using the <b>cWebColumnHighlight</b> Class that can highlight keywords.</p>"
+        End_Object
+        
+        
+        
+        
+        Object oSuggestionsPanel is a cWebFloatingPanel
+//            Set pbVisible to True
+            Set phoFloatByControl to oWebSuggestionForm1
+            
+            Set piWidth to 500
+            Set piHeight to 500
+            Set pbHideOnBlur to True
+            Set psCSSClass to "NoWhitespace Shadow"
+            
+            Object oWebList1 is a cWebList
+                Set pbFillHeight to True
+                Set pbShowHeader to False
+                Set psCSSClass to "MobileList"
+                Set piOrdering to 2
+                Set phoKeyBuddy to oWebSuggestionForm1
+                Set pbServerOnRowClick to True
+                
+                Object oCustomerName is a cWebColumnHighlight
+                    Entry_Item Customer.Name
+                    Set psCaption to "Customer Name"
+                    Set piWidth to 315
+                    Set psCSSClass to "RowCaption"
+                    Set piListColSpan to 3
+                    Set pbCaseSensitive to True
+                    Set pbSeparateWords to False
+                End_Object
+                
+                Object oCustomerCustomer_Number is a cWebColumn
+                    Entry_Item Customer.Customer_Number
+                    Set psCaption to "Number"
+                    Set piWidth to 32
+                    Set pbFixedWidth to True
+                    Set peAlign to alignLeft
+                    Set pbNewLine to True
+                    Set psCSSClass to "RowDetail"
+                    
+                End_Object
+                
+                Object oCustomer_City is a cWebColumn
+                    Set psCaption to "City, State, Zip"
+                    Set piWidth to 50
+                    Set psCSSClass to "RowDetail"
+                    Procedure OnSetCalculatedValue String ByRef sValue
+                        Move (Customer.City - "," * Customer.State - "," * Customer.Zip) to sValue
+                    End_Procedure
+                End_Object
+                
+                Object oCustomerBalance is a cWebColumn
+                    Entry_Item Customer.Balance
+                    Set psCaption to "Balance Due"
+                    Set piWidth to 80
+                    Set pbFixedWidth to True
+                    Set psCSSClass to "RowDetail"
+                End_Object
+                
+                Procedure OnRowClick String sRowID
+                    Send FindByRowId of oCustomerDataDictionary (RefTable(Customer)) (DeserializeRowID(sRowID))
+                    Send ShowInfoBox (SFormat("Clicked customer '%1'!", Trim(Customer.Name)))
+                End_Procedure
+            End_Object
+        End_Object
+        
+        WebSetResponsive piColumnCount rmMobile to 6
+        
+        // place controls here.
+        // Your view will grow as controls are added
+        
+        // This shows how using groups can be an effective to create a responsive view.
+        
+    End_Object
+    
+    // add action menu items here
+    // we've included some common buttons
+    
+    Object oActionGroup is a cWebMenuGroup
+        Set psGroupName to "MainActions"
+        
+        Object oSaveBtn is a cWebMenuItem
+            Set psCaption to C_$Save
+            Set psCSSClass to "WebSaveMenuItem"
+            
+            Procedure OnClick
+                Send Request_Save
+            End_Procedure
+        End_Object
+        
+        Object oEditBtn is a cWebMenuItem
+            Set psCaption to C_$CategoryEdit
+            Set psCSSClass to "WebEditMenuItem"
+            Procedure OnClick
+                Send ChangeEditMode True
+                Send SetActionButtons
+            End_Procedure
+        End_Object
+        
+        Object oDeleteBtn is a cWebMenuItem
+            Set psCaption to C_$Delete
+            Set psCSSClass to "WebDeleteMenuItem"
+            Set peActionDisplay to adMenu
+            
+            Procedure OnClick
+                Send Request_Delete
+            End_Procedure
+        End_Object
+        
+        Object oCancelChangesBtn is a cWebMenuItem
+            
+            Set psCaption to C_$ToolTipClear
+            Set peActionDisplay to adMenu
+            
+            Procedure OnClick
+                // this will undo any unchanged saves and show the latest
+                Send RefreshRecord
+            End_Procedure
+        End_Object
+        
+    End_Object
+    
+    // This can be used to show and hide buttons based on context. This can be called
+    // any time the view is active.
+    Procedure SetActionButtons
+        tWebNavigateData NavigateData
+        Boolean bHasRecord
+        Handle hoDD
+        
+        Get Server to hoDD
+        Get GetNavigateData to NavigateData
+        
+        If (hoDD) Begin
+            Get HasRecord of hoDD to bHasRecord
+        End
+        Else Begin
+            Move False to bHasRecord
+        End
+        
+        // let's hide all buttons and then show the ones we want
+        WebSet pbRender of oEditBtn to False
+        WebSet pbRender of oSaveBtn to False
+        WebSet pbRender of oCancelChangesBtn to False
+        WebSet pbRender of oDeleteBtn to False
+        
+        If (NavigateData.bReadOnly) Begin
+            WebSet pbRender of oEditBtn to True
+        End
+        Else Begin
+            WebSet pbRender of oSaveBtn to True
+            WebSet pbRender of oCancelChangesBtn to True
+            WebSet pbRender of oDeleteBtn to bHasRecord
+        End
+    End_Procedure
+    
+    // this will close the view after a save
+    Procedure OnViewSaved Handle hoServer Boolean bChanged
+        Send NavigateClose Self
+    End_Procedure
+    
+    // this will close the view after a delete
+    Procedure OnViewDeleted Handle hoDDO
+        Send NavigateClose Self
+    End_Procedure
+    
+    // Add code to customize your Zoon View based on how it was invoked.
+    // Use NavigateData to determine the context this view will be used in.
+    
+    Procedure OnNavigateForward tWebNavigateData NavigateData Integer hoInvokingView Integer hoInvokingObject
+        
+        // if this view is being used in multiple contexts you may need a block of code
+        // like this to handle customizations. This would include hiding rows and buttons
+        // (WebSet pbRender) and changing the values of various captions.
+        
+        Case Begin
+            Case (NavigateData.eNavigateType=nfFromMain)
+                // If from main, this is a propbably a main file Select to Zoom.
+                // This is the most typical way to navigate to a zoom.
+                Case Break
+            
+            Case (NavigateData.eNavigateType=nfFromParent)
+                // If from parent, this is a constrained drill down.
+                // If needed you could check NaviateData.iTable to determine the constraining parent.
+                // This would be unusual - normally you drill down from a parent to a list (Select view).
+                Case Break
+            
+            Case (NavigateData.eNavigateType=nfFromChild)
+                // If from child, this is a probably a parent Zoom from a Zoom.
+                // This is unusual but it might be used for adding a new child record.
+                Case Break
+            
+            Case Else // must be nfUndefined
+                // This may be the start of a query or this may be used for some kind of
+                // custom operation. You may want to check NavigateData.NamedValues.
+                
+        Case End
+        
+        // Action buttons can be changed dynamically during a Zoom's display lifetime. It is
+        // best to set these buttons in their own procedure so you can change later.
+        Send SetActionButtons
+        
+    End_Procedure
+    
+End_Object
+

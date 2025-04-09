@@ -1,0 +1,49 @@
+/* STYLES ICONS */
+#OWEBAPP.Df_Modern_Sky .RWRunReportButton .WebItm_Icon:before{
+  font-size: 16px;
+  padding-top: 1px;
+  content: "g";
+}
+
+/* STYLES SORT & ORDER */
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderUp {
+  margin-top: 40px;
+}
+
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderDown {
+  margin-top: 10px;
+}
+
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderDown button:before,
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderUp button:before {
+  font-size: 16px;
+  border: 1px solid transparent;
+  box-shadow: 0 0 0 0 #FFFFFF inset;
+  padding: 0;
+  text-shadow: 0 0;
+  padding-top: 1px;
+}
+
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderUp button:before {
+  content: "e";
+}
+
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderDown button:before {
+  content: "f";
+}
+
+/* STYLES FONT LOADING */
+#OWEBAPP.Df_Modern_Sky .RWRunReportButton .WebItm_Icon:before,
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderUp button:before,
+#OWEBAPP.Df_Modern_Sky .RWMoveSortOrderDown button:before{
+  font-family: "dataflex-reports" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display:inline-block;
+}

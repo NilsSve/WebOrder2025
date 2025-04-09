@@ -1,0 +1,57 @@
+/* This file contains the CSS classes to be used for the HTML previewer control. 
+The file needs to be loaded inside the IFRAME element of the previewer custom control. 
+The classes are the same for all themes */
+
+@page{ 
+  margin:0pt; 
+}
+
+@media screen{
+  body.DR_Body{
+    background-color: #efefef;
+    margin: 0;
+  }
+
+  .page{
+    margin: 20px 10px 30px;
+    -webkit-box-shadow:  1px 5px 18px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow:     1px 5px 18px rgba(0, 0, 0, 0.2);
+    box-shadow:          1px 5px 18px rgba(0, 0, 0, 0.2);
+      background-color: #FFFFFF;
+  }
+}
+
+@media print{
+  body.DR_Body{
+    margin: 0;
+  }
+  .page{
+    page-break-inside: avoid;
+    page-break-after: always;
+    display: inline-block;
+  }
+  .page:last-child{
+    page-break-after: avoid;
+  }
+}
+
+.page{
+  position: relative;
+  width: 628pt;
+  height: 852pt;
+}
+
+.DR_ViewPort {
+  overflow: hidden;
+  position: relative;
+}
+
+.DR_Click {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.DR_Sizer{
+  position: absolute;
+}
+

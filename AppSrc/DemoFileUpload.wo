@@ -1,0 +1,496 @@
+﻿// \Examples\WebOrder\AppSrc\DemoFileUpload.wo
+
+Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebFileUploadButton.pkg
+Use cWebFileUploadForm.pkg
+Use cWebLabel.pkg
+Use cWebButton.pkg
+Use cWebHorizontalLine.pkg
+Use cWebTreeView.pkg
+Use cWebDragDropFileHelper.pkg
+Use cWebGroup.pkg
+Use cWebContextMenu.pkg
+Use cWebMenuItem.pkg
+
+
+Object oDemoFileUpload is a cWebView
+    Set piColumnCount to 10
+    Set psCaption to "File Upload"
+    Set piWidth to 1280
+    
+    Procedure CleanUp Integer eMode
+        String sPath
+        
+        If (eMode = cmYes) Begin
+            //  Use default upload folder
+            Get UploadFolder of ghoWebApp True to sPath
+            
+            Move (sPath + "\*.*") to sPath
+            
+            EraseFile sPath
+        End
+    End_Procedure
+    WebPublishProcedure CleanUp
+    
+    
+    Object oWebTopPanel is a cWebPanel
+        Set peRegion to prTop
+        Set piHeight to 160
+        Set piColumnCount to 10
+        
+        Object oWebLabel1 is a cWebLabel
+            Set piColumnSpan to 0
+            Set psCaption to "File upload form, which has its drop zone expanded to the entire panel (phoDropZone)."
+        End_Object
+        
+        
+        
+        Object oWebFile1 is a cWebFileUploadForm
+            Set piColumnSpan to 0
+            Set psLabel to "File:"
+            
+//            Set pbAutoStart to True
+            
+            Function OnFileUpload String sFileName BigInt iBytes String sMime Returns String
+                String sPath
+                
+                // Use default upload folder
+                Get UploadFolder of ghoWebApp True to sPath
+                
+                Move (sPath + "\" + sFileName) to sPath
+                
+                Function_Return sPath
+            End_Function
+            
+            Procedure OnFileFinished String sFileName String sLocalPath
+                Send ShowYesNo oDemoFileUpload (RefProc(CleanUp)) (SFormat("Succesfully uploaded %1! Do you want to clear the upload folder?", sFileName)) ("Finished") cmYes
+            End_Procedure
+            
+            Set phoDropZone to oWebTopPanel
+        End_Object
+        
+        Object oWebButton1 is a cWebButton
+            Set piColumnSpan to 2
+            Set psCaption to "Show existing file"
+            
+            Procedure OnClick
+                String sPath
+                
+                //  Determine local path based on workspace setting
+                Get psDataPath of (phoWorkspace(ghoApplication)) to sPath
+                
+                Move (sPath + "\OrderDetail.dat") to sPath
+                
+                Send DisplayExistingFile of oWebFile1 sPath
+            End_Procedure
+        End_Object
+
+        Object oWebButton2 is a cWebButton
+            Set piColumnIndex to 2
+            Set piColumnSpan to 2
+            Set psCaption to "Clear file"
+            
+            Procedure OnClick
+                Send ClearDisplay of oWebFile1
+                
+            End_Procedure
+        End_Object
+    End_Object
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 10
+
+        Object oStandardUploadGrp is a cWebGroup
+            Set piColumnCount to 12   
+            Set piColumnSpan to 4
+            Set pbShowBorder to False
+            Set pbShowCaption to False
+            
+            Object oWebLabel5 is a cWebLabel
+                Set piColumnSpan to 0
+                Set psCaption to "File upload form with pbAutoStart set to False and a file filter set to only accept images using psAccept."
+            End_Object
+    
+            Object oWebFileUploader2 is a cWebFileUploadForm
+                Set piColumnSpan to 8
+                Set psLabel to "File:"
+                Set psAccept to "image/*,.jpg,.png,.bmp,.gif" // Note that older browsers do not support filtering on mime types
+                Set pbAutoStart to False
+                Set pbShowMime to True
+                
+    //            Set pbAutoStart to True
+                // Called for each file upload to generate the local path where the file is stored.
+                Function OnFileUpload String sFileName BigInt iBytes String sMime Returns String
+                    String sPath
+                    
+                    // Use default upload folder
+                    Get UploadFolder of ghoWebApp True to sPath
+                    
+                    Move (sPath + "\" + sFileName) to sPath
+                    
+                    Function_Return sPath
+                End_Function
+                
+                Procedure OnFileFinished String sFileName String sLocalPath
+                    Send ShowYesNo oDemoFileUpload (RefProc(CleanUp)) (SFormat("Succesfully uploaded '%1'! Do you want to clear the upload folder?", sLocalPath)) ("Finished") cmYes
+                End_Procedure
+            End_Object
+            
+            Object oWebButton3 is a cWebButton
+                Set piColumnSpan to 2
+                Set psCaption to "Start Upload"
+                Set piColumnIndex to 8
+                
+                Procedure OnClick
+                    Send StartUpload of oWebFileUploader2
+                End_Procedure
+            End_Object
+            
+            Object oWebHorizontalLine4 is a cWebHorizontalLine
+            End_Object
+            
+            Object oWebLabel2 is a cWebLabel
+                Set piColumnSpan to 0
+                Set psCaption to "File upload form, which has pbShowDialog set to True, so that the upload process is shown in a modal dialog."
+            End_Object
+            
+            Object oWebFileUploadForm1 is a cWebFileUploadForm
+                Set piColumnSpan to 0
+                Set psLabel to "file"
+                Set pbShowDialog to True
+                
+                // Called for each file upload to generate the local path where the file is stored.
+                Function OnFileUpload String sFileName BigInt iBytes String sMime Returns String
+                    String sPath
+                    
+                    // Use default upload folder
+                    Get UploadFolder of ghoWebApp True to sPath
+                    
+                    Move (sPath + "\" + sFileName) to sPath
+                    
+                    Function_Return sPath
+                End_Function
+            End_Object
+            
+            Object oWebHorizontalLine2 is a cWebHorizontalLine
+            End_Object
+            
+            Object oWebLabel3 is a cWebLabel
+                Set piColumnSpan to 0
+                Set psCaption to "File upload button, allowing multiple files to be uploaded at once. Shows a log message on the console for every uploaded file after entire upload (all files) is finished."
+            End_Object
+            
+            Object oFileUpload is a cWebFileUploadButton
+                Set piColumnSpan to 3
+                Set psCaption to "Upload File(s)"
+                
+                { WebProperty=Server }
+                Property Integer piCount 0
+                
+                Function OnFileUpload String sFileName BigInt iBytes String sMime Returns String
+                    String sPath
+                    
+                    // Use default upload folder
+                    Get UploadFolder of ghoWebApp True to sPath
+                    
+                    Move (sPath + "\" + sFileName) to sPath
+                    
+                    Function_Return sPath
+                End_Function
+                
+                Procedure OnFileFinished String sFileName String sLocalPath
+                    Integer iCount
+                    
+                    WebGet piCount to iCount
+                    Increment iCount
+                    WebSet piCount to iCount
+                    Send ClientLog (SFormat("File %1 saved as %2", sFileName, sLocalPath))
+                End_Procedure
+                
+                Procedure OnUploadFinished
+                    Integer iCount
+                    
+                    WebGet piCount to iCount
+                    WebSet piCount to 0
+                    
+                    Send ShowYesNo oDemoFileUpload (RefProc(CleanUp)) (SFormat("Succesfully uploaded %1 files! Do you want to delete them?", iCount)) ("Finished") cmYes
+                End_Procedure
+            End_Object
+            
+            Object oWebHorizontalLine3 is a cWebHorizontalLine
+            End_Object
+            
+            Object oWebLabel4 is a cWebLabel
+                Set piColumnSpan to 0
+                Set psCaption to "File upload button that allows multiple files to be uploaded at once. Shows a log message on the console for every uploaded file after each file, because pbNotifyIndividualFile is set to True."
+            End_Object
+     
+            Object oFileUploadBtn2 is a cWebFileUploadButton
+                Set piColumnSpan to 3
+                Set psCaption to "Upload File(s)"
+                Set pbNotifyIndividualFile to True
+                
+                { WebProperty=Server }
+                Property Integer piCount 0
+                
+                
+                Function OnFileUpload String sFileName BigInt iBytes String sMime Returns String
+                    String sPath
+                    
+                    // Use default upload folder
+                    Get UploadFolder of ghoWebApp True to sPath
+                    
+                    Move (sPath + "\" + sFileName) to sPath
+                    
+                    Function_Return sPath
+                End_Function
+                
+                Procedure OnFileFinished String sFileName String sLocalPath
+                    Integer iCount
+                    
+                    WebGet piCount to iCount
+                    Increment iCount
+                    WebSet piCount to iCount
+                    Send ClientLog (SFormat("File %1 saved as %2", sFileName, sLocalPath))
+                End_Procedure
+                
+                Procedure OnUploadFinished
+                    Integer iCount
+                    
+                    WebGet piCount to iCount
+                    WebSet piCount to 0
+                    
+                    Send ShowYesNo oDemoFileUpload (RefProc(CleanUp)) (SFormat("Succesfully uploaded %1 files! Do you want to delete them?", iCount)) ("Finished") cmYes
+                End_Procedure
+            End_Object
+        End_Object
+        
+        Object oFileDropDemoGrp is a cWebGroup
+            Set piColumnCount to 12
+            Set piColumnIndex to 6
+            Set piColumnSpan to 4
+            Set pbShowBorder to False
+            Set pbShowCaption to False
+            Set pbFillHeight to True
+            
+            Object oWebLabelDragDropFiles is a cWebLabel
+                Set piColumnSpan to 0
+                Set psCaption to "The TreeView below is set up for accepting files. Drop the file on any folder to upload to that folder (Data/Uploads/DragDropDemo/..) specifically. The WebList also supports file drop functionality."
+            End_Object
+            
+            Object oTreeViewFiles is a cWebTreeView
+                Set piColumnSpan to 12
+                Set piHeight to 500
+                
+                Function OnLoadChildNodes String sId String sValue Integer iLevel Returns tWebTreeItem[]
+                    tWebTreeItem[] aItems
+                    String[] asFolders asFolderContents
+                    String sPath sFolderPath sItemId
+                    Integer i j iIndex
+                    
+                    Forward Get OnLoadChildNodes sId sValue iLevel to aItems
+                    
+                    // Read folders
+                    Get DragDropDemoPath to sPath
+                    
+                    Move 0 to iIndex
+                                    
+                    Get ReadFolderContent sPath to asFolders
+                    
+                    If (SearchArray("Folder 1", asFolders) < 0) ;
+                        Move "Folder 1" to asFolders[SizeOfArray(asFolders)]
+                    If (SearchArray("Folder 2", asFolders) < 0) ;
+                        Move "Folder 2" to asFolders[SizeOfArray(asFolders)]
+                    If (SearchArray("Folder 3", asFolders) < 0) ;
+                        Move "Folder 3" to asFolders[SizeOfArray(asFolders)]
+                    
+                    
+                    For i from 0 to (SizeOfArray(asFolders) -1)
+                        Move (sPath + '/' + asFolders[i]) to sFolderPath
+                        Move (asFolders[i]) to sItemId
+                        
+                        Move asFolders[i] to aItems[iIndex].sName
+                        Move sItemId to aItems[iIndex].sId
+                        Move True to aItems[iIndex].bFolder
+                        
+                        Get ReadFolderContent sFolderPath to asFolderContents
+                        
+                        Increment iIndex
+                        
+                        For j from 0 to (SizeOfArray(asFolderContents) - 1)
+                            Move asFolderContents[j] to aItems[iIndex].sName
+                            Move sItemId to aItems[iIndex].sParentId
+                            Move (asFolders[i] + "\" + asFolderContents[j]) to aItems[iIndex].sId
+                            
+                            Increment iIndex
+                        Loop
+                    Loop
+                    
+    
+                    Function_Return aItems
+                End_Function
+                
+                Function ReadFolderContent String sFolderPath Returns String[]
+                    String[] asRet
+                    String sLine sFolder
+                    Boolean bExists
+                    
+                    File_Exist sFolderPath bExists
+                    
+                    If (bExists) Begin
+                        Direct_Input ("dir: " + sFolderPath)
+                        Repeat
+                           Readln sLine
+                           If (sLine <> '[.]' and sLine <> '[..]' and sLine <> '') Begin
+                               Move (Replace('[', sLine, '')) to sFolder
+                               Move (Replace(']', sFolder, '')) to sFolder
+                               
+                               Move sFolder to asRet[SizeOfArray(asRet)]  
+                           End
+                        Until (SeqEof)
+                    End
+                     
+                    Function_Return asRet
+                End_Function
+
+                Object oFileContextMenu is a cWebContextMenu
+                    Set peContext to C_WebUIContextTreeviewItem
+                    Set pbShowIcons to True
+
+                    Object oDownloadFileBtn is a cWebMenuItem
+                        Set psCaption to "Download"
+                        
+                        Procedure OnClick
+                            String sTreeItemId sPath sUrl
+                            
+                            WebGet psContextValue of oFileContextMenu to sTreeItemId
+                            
+                            If (sTreeItemId <> "") Begin
+                                //  Assemble path
+                                Get DragDropDemoPath to sPath
+                                Move (sPath + "\" + sTreeItemId) to sPath
+                                
+                                Get CustomDownloadURL of ghoWebResourceManager sPath True "" True 24 to sUrl
+                                
+                                If (sUrl <> "") ;
+                                    Send NavigateToPage sUrl btCurrentWindow
+                            End
+                        End_Procedure
+                    End_Object
+
+                    Object oDeleteFileBtn is a cWebMenuItem
+                        Set psCaption to "Delete"
+                        Set psCSSClass to "WebIcon_Delete"
+                        
+                        { WebProperty=Server }
+                        Property String psFileToDelete ""
+                                            
+                        Procedure ConfirmDelete Integer eConfirmMode
+                            String sFile sPath
+                            Boolean bExists
+                            
+                            If (eConfirmMode=cmYes) Begin
+                                WebGet psFileToDelete to sFile
+                                Get DragDropDemoPath to sPath
+                                Move (sPath + "\" + sFile) to sPath
+                                
+                                //  Do the delete
+                                File_Exist sPath bExists
+                                If (bExists) ; 
+                                    EraseFile sPath
+                                
+                                //  Tell the treeview
+                                Send RemoveNode of oTreeViewFiles sFile
+                            End
+                        End_Procedure
+                        
+                        // this tells the system that this method is allowed for this object
+                        WebPublishProcedure ConfirmDelete
+                        
+                        Procedure OnClick
+                            String sTreeItemId
+                            WebGet psContextValue of oFileContextMenu to sTreeItemId
+                            
+                            WebSet psFileToDelete to sTreeItemId
+                            Send ShowYesNo (Self) (RefProc(ConfirmDelete)) (SFormat("Are you sure you want to delete '%1'?", sTreeItemId)) "Confirm" 
+                        End_Procedure
+                    End_Object
+                End_Object
+            End_Object
+            
+            Object oFileDropHelper is a cWebDragDropFileHelper
+                Send RegisterDropTarget oTreeViewFiles C_WebDropTreeviewFolder
+                
+                // Called for each file dropped
+                Function OnFileDrop String sFileName BigInt iBytes String sMime Handle hoDropTarget WebDropPosition eDropPosition Returns String
+                    String sPath
+                    tWebTreeViewDropData tDropData
+                    Boolean bExists
+                    
+                    Get DropData of hoDropTarget to tDropData
+                    Get DragDropDemoPath to sPath
+                    
+                    //  Assemble path (and generate folders if they do not exist on the go)
+                    File_Exist sPath bExists
+                    If (not(bExists)) Begin
+                        Make_Directory sPath
+                    End
+                    
+                    If (Trim(tDropData.data.sName) <> "") Begin
+                        Move (sPath + "\" + Trim(tDropData.data.sName)) to sPath
+                        
+                        File_Exist sPath bExists
+                        If (not(bExists)) Begin
+                            Make_Directory sPath
+                        End
+                    End
+                    
+                    Move (sPath + "\" + sFileName) to sPath
+                    
+                    //  Check if we are not overwriting an existing file
+                    File_Exist sPath bExists
+                    If (bExists) Begin
+                        Send UserError "File already exists!"
+                        Function_Return ""
+                    End
+                    
+                    Function_Return sPath
+                End_Function
+                
+                Procedure OnFileFinished String sFileName String sLocalPath
+                    String sDragDropPath
+                    tWebTreeItem newItem
+                    
+                    Get DragDropDemoPath to sDragDropPath
+                    
+                    Move (Right(sLocalPath, Length(sLocalPath) - Length(sDragDropPath) - 1)) to newItem.sId
+                    Move (Left(newItem.sId, RightPos("\", newItem.sId) - 1)) to newItem.sParentId
+                    Move sFileName to newItem.sName
+                    
+                    Send InsertNode of oTreeViewFiles newItem
+                    Send Select of oTreeViewFiles newItem.sId
+                End_Procedure
+            End_Object
+        End_Object
+    End_Object
+    
+    Function DragDropDemoPath Returns String
+        String sPath
+        
+        Get UploadFolder of ghoWebApp True to sPath
+        Move (sPath + "\DragDropDemo") to sPath
+        
+        Function_Return sPath
+    End_Function
+    
+    Procedure End_Construct_Object
+        String sPath
+        
+        Forward Send End_Construct_Object
+        
+        //  Register the path for downloads
+        Get DragDropDemoPath to sPath
+        Send RegisterDownloadFolder of ghoWebResourceManager sPath
+    End_Procedure
+End_Object

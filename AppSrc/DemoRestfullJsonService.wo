@@ -1,0 +1,200 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cJsonHttpTransfer.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cWebButton.pkg
+Use cWebHtmlBox.pkg
+
+Use DemoDisplayUser.wo
+Use DemoJsonDisplayComments.wo
+
+
+Struct tPost
+    Integer userId
+    Integer id
+    String title
+    String body
+End_Struct
+
+Object oDemoRestfullJsonService is a cWebView
+    Set psCaption to "Posts from Restfull Service"
+    Set piMaxWidth to 1024
+    
+    Object oJsonHttp is a cJsonHttpTransfer
+        // properties to set to access an HTTPS site
+        Set piRemotePort to rpHttpSSL
+        Set peTransferFlags to ifSecure
+    End_Object
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oWebHtmlBox1 is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to '<p>This demo shows how access a restfull JSON service using the cJsonHttpTransfer class and the cJsonObject. The service used in this example is online and available at <a href="http://jsonplaceholder.typicode.com/" target="_blank">jsonplaceholder.typicode.com</a>.</p>'
+        End_Object
+        
+        Object oWebButton1 is a cWebButton
+            Set piColumnSpan to 2
+            Set psCaption to "Load posts"
+            
+            Procedure OnClick
+                Send GridRefresh of oPostsList
+            End_Procedure
+        End_Object
+        
+        Object oDeleteBtn is a cWebButton
+            Set piColumnSpan to 2
+            Set psCaption to "Delete post"
+            Set piColumnIndex to 2
+            Set pbEnabled to False
+            
+            Procedure OnClick
+                String sId sErr
+                Handle hoJson
+                Boolean bOk
+                
+                WebGet psCurrentRowID of oPostsList to sId
+                
+                If (sId <> "") Begin
+                    Get HttpDeleteJson of oJsonHttp "jsonplaceholder.typicode.com" ("/posts/" + sId) 0 (&bOk) to hoJson
+                    
+                    If (bOk) Begin
+                        Send ShowInfoBox "Succesfully deleted item."
+                        
+                        If (hoJson) Begin
+                            Send Destroy of hoJson
+                        End
+                        
+                        //Send GridRefresh
+                    End
+                    Else Begin
+                        Get TransferErrorDescription of oJsonHttp to sErr
+                        Send UserError sErr "Transfer failed!"
+                    End
+                End
+            End_Procedure
+        End_Object
+        
+        Object oOpenUserBtn is a cWebButton
+            Set piColumnSpan to 2
+            Set psCaption to "Open user"
+            Set piColumnIndex to 4
+            Set pbEnabled to False
+            
+            Procedure OnClick
+                Integer sUser
+                
+                WebGet psValue of oUserIdCol to sUser
+                If (sUser <> "") Begin
+                    
+                    Send PopupUserDialog of oDemoDisplayUser Self sUser
+                End
+//
+            End_Procedure
+        End_Object
+        
+        Object oCommentsBtn is a cWebButton
+            Set piColumnSpan to 6
+            Set piColumnSpan to 2
+            Set psCaption to "Open comments"
+            Set piColumnIndex to 6
+            
+            Procedure OnClick
+                Integer iPostId
+                String sPostId
+                
+                WebGet psCurrentRowId of oPostsList to sPostId
+                If (sPostId <> "") Begin
+                    Move sPostId to iPostId
+                End
+                Else Begin
+                    Move -1 to iPostId
+                End
+                
+                Send PopupJsonDisplayCommentsDialog of oDemoJsonDisplayComments Self iPostId
+            End_Procedure
+        End_Object
+        
+        Object oPostsList is a cWebList
+            Set pbFillHeight to True
+            Set pbDataAware to False
+            
+            Object oIdCol is a cWebColumn
+                Set psCaption to "Id"
+                Set piWidth to 50
+                Set peDataType to typeNumber
+            End_Object
+            Object oUserIdCol is a cWebColumn
+                Set psCaption to "UserId"
+                Set piWidth to 81
+                Set peDataType to typeNumber
+            End_Object
+            
+            Object oTitleCol is a cWebColumn
+                Set psCaption to "Title"
+                Set piWidth to 202
+            End_Object
+            
+            Object oBodyCol is a cWebColumn
+                Set psCaption to "Body"
+                Set piWidth to 406
+            End_Object
+            
+            
+            Procedure OnManualLoadData tWebRow[]  ByRef aTheRows String  ByRef sCurrentRowID
+                Handle hoJson
+                Boolean bOk
+                tPost[] aComments
+                Integer i iTo iIdCol iBodyCol iUserIdCol iTitleCol
+                String sErr
+                
+                //  Determine column order
+                Get piColumnId of oIdCol to iIdCol
+                Get piColumnId of oUserIdCol to iUserIdCol
+                Get piColumnId of oTitleCol to iTitleCol
+                Get piColumnId of oBodyCol to iBodyCol
+                
+                //  Perform JSON request
+                Get HttpGetJson of oJsonHttp "jsonplaceholder.typicode.com" "/posts" (&bOk) to hoJson
+                
+                If (bOk) Begin
+                    Get IsOfJsonType of hoJson jsonTypeArray to bOk
+                    
+                    If (bOk) Begin
+                        Get JsonToDataType of hoJson to aComments
+                        
+                        Move (SizeOfArray(aComments) - 1) to iTo
+                        For i from 0 to iTo
+                            Move aComments[i].id to aTheRows[i].sRowID
+                            
+                            Move aComments[i].id to aTheRows[i].aCells[iIdCol].sValue
+                            Move aComments[i].userid to aTheRows[i].aCells[iUserIdCol].sValue
+                            Move aComments[i].title to aTheRows[i].aCells[iTitleCol].sValue
+                            Move aComments[i].body to aTheRows[i].aCells[iBodyCol].sValue
+                        Loop
+                    End
+                    Else Begin
+                        Send UserError "Unexpected JSON format." ""
+                    End
+                    
+                    Send Destroy of hoJson
+                End
+                Else Begin
+                    Get TransferErrorDescription of oJsonHttp to sErr
+                    Send UserError sErr "Transfer failed!"
+                End
+                
+                WebSet pbEnabled of oOpenUserBtn to (SizeOfArray(aTheRows) > 0)
+                WebSet pbEnabled of oDeleteBtn to (SizeOfArray(aTheRows) > 0)
+            End_Procedure
+        End_Object
+        
+        
+        
+    End_Object
+    
+End_Object
+

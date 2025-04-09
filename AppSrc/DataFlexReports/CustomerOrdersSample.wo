@@ -1,0 +1,178 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebRadio.pkg
+Use cWebCheckbox.pkg
+Use cWebForm.pkg
+Use cWebButton.pkg
+Use cWebLabel.pkg
+Use cWebIFrame.pkg
+Use cWebSpacer.pkg
+Use cWebGroup.pkg
+
+Use cDRReport.pkg
+
+Use ExportReportDialog.wo
+
+// In this example webview the user can view the orders of a particular customer or a range of customers. For that the
+// user enters (or selects) a customer number to start with an - optionally - a customernumber to end with. If the orders of
+// one particular customer are desired the user should enter the same value in the from and to input forms.
+
+Use cCustomerDataDictionary.dd
+
+Object oCustomerOrdersSample is a cWebView
+    Object oCustomer_DD is a cCustomerDataDictionary
+    End_Object
+
+    Set Main_DD to oCustomer_DD
+    Set Server to oCustomer_DD
+
+    Set psCaption to "Customer Orders (DataFlex Reports)"
+    Set piWidth to 700
+    Set piColumnCount to 12
+    Set psStateViewName to "CustomerOrders"
+
+    Object oReport is a cDRReport
+        Set psReportName to "CustomerOrders.DR"
+
+        Procedure OnInitializeReport
+            Forward Send OnInitializeReport
+
+            Send SetFilters
+        End_Procedure
+
+        Procedure SetFilters
+            Integer[] iCustomerCustomerNumbers
+            String sReportId
+
+            Get psReportId to sReportId
+            Send RemoveAllFilters sReportId  // clear any previous filters
+
+            WebGet psValue of oFromCustomerCustomerNumber to iCustomerCustomerNumbers[0]
+            WebGet psValue of oToCustomerCustomerNumber to iCustomerCustomerNumbers[1]
+
+            If (iCustomerCustomerNumbers[0] > iCustomerCustomerNumbers[1]) Begin
+                Move (ReverseArray (iCustomerCustomerNumbers)) to iCustomerCustomerNumbers
+            End
+            If (iCustomerCustomerNumbers[0] <> 0) Begin
+                Send AddFilter sReportId "{Customer.Customer_Number}" C_drGreaterThanOrEqual iCustomerCustomerNumbers[0]
+            End
+            If (iCustomerCustomerNumbers[1] <> 0) Begin
+                Send AddFilter sReportId "{Customer.Customer_Number}" C_drLessThanOrEqual iCustomerCustomerNumbers[1]
+            End
+        End_Procedure
+    End_Object
+
+    Procedure RunReport
+        Send GenerateReport of oReport
+    End_Procedure
+
+    Object oMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oCustomerCustomerNumberGroup is a cWebGroup
+            Set psCaption to "Customer Number:"
+            Set piColumnSpan to 4
+            Set piColumnCount to 12
+
+            Object oFromCustomerCustomerNumber is a cWebForm
+                Set psLabel to "From:"
+                Set piLabelOffset to 50
+                Set piColumnSpan to 0
+                Set peDataType to typeNumber
+                Set piMaxLength to 10
+                Set pbPromptButton to True
+
+                Procedure OnPrompt
+                    Handle hoPrompt
+
+                    Get Field_WebPrompt_Object of oCustomer_DD Field Customer.Customer_Number to hoPrompt
+                    Send Popup of hoPrompt Self
+                End_Procedure
+
+                Procedure Prompt_Callback Handle hoPrompt
+                    Integer iColumn
+
+                    Forward Send Prompt_Callback hoPrompt
+
+                    WebSet peUpdateMode of hoPrompt to umPromptValue
+                    Get SelectBestColumn of hoPrompt File_Field Customer.Customer_Number to iColumn
+                    WebSet piUpdateColumn of hoPrompt to iColumn
+                End_Procedure
+            End_Object
+
+            Object oToCustomerCustomerNumber is a cWebForm
+                Set psLabel to "To:"
+                Set piLabelOffset to 50
+                Set piColumnSpan to 0
+                Set peDataType to typeNumber
+                Set piMaxLength to 10
+                Set pbPromptButton to True
+
+                Procedure OnPrompt
+                    Handle hoPrompt
+
+                    Get Field_WebPrompt_Object of oCustomer_DD Field Customer.Customer_Number to hoPrompt
+                    Send Popup of hoPrompt Self
+                End_Procedure
+
+                Procedure Prompt_Callback Handle hoPrompt
+                    Integer iColumn
+
+                    Forward Send Prompt_Callback hoPrompt
+
+                    WebSet peUpdateMode of hoPrompt to umPromptValue
+                    Get SelectBestColumn of hoPrompt File_Field Customer.Customer_Number to iColumn
+                    WebSet piUpdateColumn of hoPrompt to iColumn
+                End_Procedure
+            End_Object
+        End_Object
+
+        Object oButtonsGroup is a cWebGroup
+            Set piColumnCount to 12
+            Set pbShowBorder to False
+            Set piColumnSpan to 4
+            Set piColumnIndex to 4
+
+            Object oRunButton is a cWebButton
+                Set psCaption to "Run Report"
+                Set piColumnSpan to 8
+
+                Procedure OnClick
+                    Send RunReport
+                End_Procedure
+            End_Object
+
+            Object oExportButton is a cWebButton
+                Set psCaption to "Export Report"
+                Set piColumnSpan to 8
+
+                Procedure OnClick
+                    Send Popup of oExportReportDialog Self
+                End_Procedure
+                
+                Function ReportExportType Returns Integer
+                    Integer eExportType
+                    
+                    Get peExportType of oReport to eExportType
+                    Function_Return eExportType
+                End_Function
+
+                Procedure OnCloseModalDialog Handle hoModalDialog
+                    tWebNavigateData ExportOptions
+
+                    Get ExportChoices of hoModalDialog to ExportOptions
+                    Send ExportReportToDownloadURL of oReport ExportOptions.NamedValues
+                End_Procedure
+            End_Object
+        End_Object
+
+        // output to an embedded window
+        Object oReportResults is a cWebIFrame
+            Set pbFillHeight to True
+            Set pbShowBorder to True
+            Set phoReportViewer of oReport to Self
+        End_Object
+    End_Object
+End_Object
+

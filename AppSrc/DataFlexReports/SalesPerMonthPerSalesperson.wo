@@ -1,0 +1,60 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebLabel.pkg
+Use cWebCheckbox.pkg
+
+Use cDRReport.pkg
+Use cWebDRReportViewer.pkg
+
+// In this example a report (using a HTML stream) is displayed showing the sales available in the system per salesperson.
+// Via the Group by Year checkbox the user can indicate if 1 of N crosstab's should be produced one for each year.
+
+Object oSalesPerMonthPerSalesperson is a cWebView
+    Set psCaption to "Sales per Month per Salesperson"
+    Set psStateViewName to "SalesPerMonthPerSalesperson"
+
+    Object oReport is a cDRReport
+        Set psReportName to "Sales per Month per Salesperson.DR"
+
+        Procedure OnInitializeReport
+            String sReportId
+            Boolean bGroupByYear
+            Integer iParameter
+
+            Forward Send OnInitializeReport
+
+            Get psReportId to sReportId
+
+            Get GetChecked of oGroupByYearCheckbox to bGroupByYear
+            Get ParameterIdByName sReportId "GroupByYear" to iParameter
+            Set psParameterValue sReportId iParameter to bGroupByYear
+        End_Procedure
+    End_Object
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oExplanation is a cWebLabel
+            Set piColumnSpan to 0
+            Set psCaption to "Show the sales of all salespersons grouped per month. By selecting the 'Group by Year' option the report shows multiple pages where each page contains the sales for that year."
+        End_Object
+
+        Object oGroupByYearCheckbox is a cWebCheckbox
+            Set piColumnSpan to 0
+            Set psCaption to "Group by Year"
+        End_Object
+
+        Object oRunReportButton is a cWebButton
+            Set psCaption to "Run Report"
+            Set piColumnSpan to 3
+
+            Procedure OnClick
+                Send ShowReport of oViewer
+            End_Procedure
+        End_Object
+
+        Object oViewer is a cWebDRReportViewer
+            Set phoReport to oReport
+        End_Object
+    End_Object
+End_Object

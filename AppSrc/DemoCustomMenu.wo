@@ -1,0 +1,302 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebGroup.pkg
+Use cWebMenuGroup.pkg
+Use cWebMenuItem.pkg
+Use cWebMenuList.pkg
+Use cWebMenuButton.pkg
+Use cWebContextMenu.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cWebHtmlBox.pkg
+Use cWebButton.pkg
+
+Object oDemoCustomMenus is a cWebView
+    Set psCaption to "Custom Menus"
+    
+    Set piMaxWidth to 1024
+    Set piColumnCount to 12
+    Set pbShowCaption to False
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oWebHtmlBox1 is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to @"
+                <h1>cWebMenuList</h1>
+                <p>The menu on the left is built using the cWebMenuList control. This control renders a list menu that is positioned like a control. Sub menus are supported and they visually slide into the place of the main menu with a back button.</p>
+                <h1>cWebMenuButton</h1>
+                <p>The button in the middle is an example of the cWebMenuButton that shows a floating menu when it is clicked. This menu dynamically generates its items using <b>OnDefineMenu</b> instead of using static child objects.</p>
+                <h1>cWebContextMenu</h1>
+                <p>In this view we have two context menus defined. One at view level that shows when right clicking anywhere in the view and one bound to the cWebList that shows when right clicking on a row.</p>
+                "
+        End_Object
+        
+        Object oWebMenuList1 is a cWebMenuList
+            Set piColumnSpan to 4
+            
+            Object oWebMenuItem1 is a cWebMenuItem
+                Set psCaption to "MenuItem 1"
+            End_Object
+            
+            Object oWebMenuItem2 is a cWebMenuItem
+                Set psCaption to "MenuItem 2"
+            End_Object
+            
+            Object oWebMenuItem3 is a cWebMenuItem
+                Set psCaption to "MenuItem 3"
+                
+                Object oWebMenuItem7 is a cWebMenuItem
+                    Set psCaption to "Sub 3A"
+                End_Object
+                
+                Object oWebMenuItem10 is a cWebMenuItem
+                    Set psCaption to "Sub 3B"
+                End_Object
+                
+                Object oWebMenuItem9 is a cWebMenuItem
+                    Set psCaption to "Sub 3C"
+                End_Object
+                
+                Object oWebMenuItem8 is a cWebMenuItem
+                    Set psCaption to "Sub 3D"
+                End_Object
+            End_Object
+            
+            Object oWebMenuItem4 is a cWebMenuItem
+                Set psCaption to "MenuItem 4"
+                
+            End_Object
+            
+            Object oWebMenuItem5 is a cWebMenuItem
+                Set psCaption to "MenuItem 5"
+                
+                Object oWebMenuItem1 is a cWebMenuItem
+                    Set psCaption to "Sub 5A"
+                End_Object
+                
+                Object oWebMenuItem2 is a cWebMenuItem
+                    Set psCaption to "Sub 5B"
+                End_Object
+                
+                Object oWebMenuItem3 is a cWebMenuItem
+                    Set psCaption to "Sub 5C"
+                End_Object
+                
+                Object oWebMenuItem4 is a cWebMenuItem
+                    Set psCaption to "Sub 5D"
+                End_Object
+                
+                Object oWebMenuItem5 is a cWebMenuItem
+                    Set psCaption to "Sub 5E"
+                    
+                    Object oWebMenuItem6 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.1"
+                    End_Object
+                    
+                    Object oWebMenuItem7 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.2"
+                    End_Object
+                    
+                    Object oWebMenuItem8 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.3"
+                    End_Object
+                    
+                    Object oWebMenuItem9 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.4"
+                    End_Object
+                    
+                    Object oWebMenuItem10 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.5"
+                    End_Object
+                    
+                    Object oWebMenuItem11 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.6"
+                    End_Object
+                    
+                    Object oWebMenuItem12 is a cWebMenuItem
+                        Set psCaption to "Sub 5E.7"
+                    End_Object
+                End_Object
+
+            End_Object
+            
+            Object oWebMenuItem12 is a cWebMenuItem
+                Set psCaption to "MenuItem 6"
+            End_Object
+            
+            Object oWebMenuItem13 is a cWebMenuItem
+                Set psCaption to "MenuItem 7"
+            End_Object
+            
+            
+        End_Object
+        
+        Object oWebMenuButton1 is a cWebMenuButton
+            Set piColumnSpan to 2
+            Set psCaption to "Menu"
+            Set psCSSClass to "WebIcon_Hamburger"
+            Set psMenuCSSClass to "WebMenuButton_Arrow"
+            Set piMenuWidth to 120
+            Set pbMenuShowCaption to False
+            Set piColumnIndex to 4
+
+            Procedure OnDefineMenu tWebMenuItem[]  ByRef aMenu
+                Forward Send OnDefineMenu (&aMenu)
+                
+                Move "1"        to aMenu[0].sId
+                Move "Item 1"   to aMenu[0].sCaption
+                Move True       to aMenu[0].bEnabled
+            
+                Move "2"        to aMenu[1].sId
+                Move "Item 2"   to aMenu[1].sCaption
+                Move True       to aMenu[1].bEnabled
+                
+                Move "2.1"      to aMenu[1].aChildren[0].sId
+                Move "Item 2.1" to aMenu[1].aChildren[0].sCaption
+                Move True       to aMenu[1].aChildren[0].bEnabled        
+
+            End_Procedure
+
+            Procedure OnItemClick String sId String sCaption
+                Send ShowInfoBox (SFormat("Clicked item '%1'", sCaption))
+                Send CollapseAll
+            End_Procedure
+        End_Object
+
+        Object oWebListSample is a cWebList
+            Set peDbGridType to gtManual
+            Set pbDataAware to False
+            Set piColumnSpan to 3
+            Set piColumnIndex to 6
+            Set piHeight to 400
+            
+            Object oWebColumn1 is a cWebColumn
+                Set psCaption to "List with context menu"
+                Set piWidth to 50
+            End_Object
+            
+            Procedure OnManualLoadData tWebRow[] ByRef aTheRows String ByRef sCurrentRowID
+                Integer i
+                
+                For i from 0 to 9
+                    Move (i + 1) to aTheRows[i].sRowId
+                    Move (SFormat("Row %1", (i + 1))) to aTheRows[i].aCells[0].sValue
+                Loop
+                
+            End_Procedure
+            
+            Procedure OnLoad
+                Send GridRefresh
+            End_Procedure
+
+            Object oWebListContextMenu is a cWebContextMenu
+                Set peContext to C_WebUIContextListRow
+                Set pbServerOnContextMenuOpen to True
+                Set pbShowIcons to True
+                
+                Object oTestItem is a cWebMenuItem
+                    Set psCaption to "Test row"
+                    
+                    Procedure OnClick
+                        String sRowId
+                        
+                        WebGet psContextValue of oWebListContextMenu to sRowId
+                        
+                        Send ShowInfoBox (SFormat("Clicked on row %1", sRowId))
+                    End_Procedure
+                End_Object
+                
+                Object oDeleteItem is a cWebMenuItem
+                    Set psCaption to "Delete row"
+                    Set psCSSClass to "WebIcon_Delete"
+                    
+                    Procedure OnClick
+                        String sRowId
+                        
+                        WebGet psContextValue of oWebListContextMenu to sRowId
+                        
+                        Send DataSetRemoveRow of oWebListSample sRowId
+                    End_Procedure
+                End_Object
+                
+                Object oResetItem is a cWebMenuItem
+                    Set psCaption to "Reset data"
+                    Set psCSSClass to "WebIcon_ClearAll"
+                    
+                    Procedure OnClick
+                        Send GridRefresh of oWebListSample
+                    End_Procedure
+                End_Object
+                
+                Procedure OnContextMenuOpen Boolean ByRef bCancel
+                    String sRowId
+                        
+                    WebGet psContextValue of oWebListContextMenu to sRowId
+                    
+                    WebSet pbEnabled of oDeleteItem to (sRowId <> "empty")
+                End_Procedure
+            End_Object
+        End_Object
+
+        Object oHomeBtn is a cWebButton
+            Set psCaption to "Home"
+            Set piColumnSpan to 2
+        
+            Procedure OnClick
+                Send CollapseAll of oWebMenuList1
+            End_Procedure
+        End_Object
+
+        Object oLevelUpBtn is a cWebButton
+            Set psCaption to "Level Up"
+            Set piColumnSpan to 2
+            Set piColumnIndex to 2
+        
+            Procedure OnClick
+                Send LevelUp of oWebMenuList1
+            End_Procedure
+        End_Object
+
+        Object oWebContextMenu1 is a cWebContextMenu
+            
+            Object oWebMenuItem1 is a cWebMenuItem
+                Set psCaption to "View context menu"
+            End_Object
+            
+            Object oWebMenuItem2 is a cWebMenuItem
+                Set psCaption to "MenuItem 1"
+            End_Object
+            
+            Object oWebMenuItem3 is a cWebMenuItem
+                Set psCaption to "MenuItem 2"
+                
+                Object oWebMenuItem7 is a cWebMenuItem
+                    Set psCaption to "Sub 3A"
+                End_Object
+                
+                Object oWebMenuItem10 is a cWebMenuItem
+                    Set psCaption to "Sub 3B"
+                End_Object
+                
+                Object oWebMenuItem9 is a cWebMenuItem
+                    Set psCaption to "Sub 3C"
+                End_Object
+                
+                Object oWebMenuItem8 is a cWebMenuItem
+                    Set psCaption to "Sub 3D"
+                End_Object
+            End_Object
+            
+            Object oWebMenuItem4 is a cWebMenuItem
+                Set psCaption to "MenuItem 3"
+                
+            End_Object
+        End_Object
+    End_Object
+    
+    
+End_Object
+

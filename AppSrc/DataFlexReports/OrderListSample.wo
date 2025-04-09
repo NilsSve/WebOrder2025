@@ -1,0 +1,185 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebRadio.pkg
+Use cWebCheckbox.pkg
+Use cWebForm.pkg
+Use cWebButton.pkg
+Use cWebLabel.pkg
+Use cWebGroup.pkg
+Use cWebSuggestionForm.pkg
+Use cWebIFrame.pkg
+
+Use cDRReport.pkg
+
+Use cOrderHeaderDataDictionary.dd
+
+Struct tOrderTotals
+    DateTime dtUpdate
+    UInteger iOrderheaderRecords
+    Number[] nOrderTotals
+End_Struct
+
+// This example report is based on the orderlist report made with DataFlex Reports. Data can be filtered on a minimum order total
+// value. The output is generated as PDF, downloaded to the client and displayed in a iFrame object.
+
+// The minimum order total control is a suggestion form and displays values from an array of ordertotal values build during
+// loading the web object or when the data was collected more than 60 seconds ago. The array is used because the orderheader
+// table does not have an index on ordertotal and finding through all row each time is more time consuming than finding in the
+// results stored in an array.
+
+// This example uses psFilterFunction instead if AddFilter as the value of this function is displayed as special field in
+// the report's page header.
+
+Object oOrderListSample is a cWebView
+    Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+    End_Object
+
+    Set Main_DD to oOrderHeader_DD
+    Set Server to oOrderHeader_DD
+
+    Set psCaption to "Order List (DataFlex Reports)"
+    Set piWidth to 1000
+    Set psStateViewName to "OrderList"
+
+    Object oReport is a cDRReport
+        Set psReportName to "OrderList.dr"
+
+        Procedure OnInitializeReport
+            Forward Send OnInitializeReport
+
+            Send SetFilters
+        End_Procedure
+
+        Procedure SetFilters
+            Number nMinOrderTotal
+            String sReportId
+
+            Get psReportId to sReportId
+            Send RemoveAllFilters sReportId  // clear any previous filters
+
+            WebGet psValue of oFromOrderHeaderOrderTotal to nMinOrderTotal
+
+            Set psFilterFunction sReportId to ('return ({OrderHeader.Order_Total} > ' + String (nMinOrderTotal) + ')')
+        End_Procedure
+    End_Object
+
+    Procedure RunReport
+        Send GenerateReport of oReport
+    End_Procedure
+
+    Object oOrderTotalGroup is a cWebGroup
+        Set psCaption to "Minimum Order Total:"
+        Set piColumnSpan to 3
+        Set piColumnCount to 6
+
+        Object oFromOrderHeaderOrderTotal is a cWebSuggestionForm
+            Set psLabel to "Amount:"
+            Set psValue to 5000
+            Set piColumnSpan to 2
+            Set piLabelOffset to 60
+            Set peDataType to typeNumber
+            Set piPrecision to 2
+            Set piMaxLength to 8
+
+            // Property to store the order total values together with information about when the data
+            // was collected and how many rows there where in the table when collecting
+            Property tOrderTotals pOrderTotals
+
+            // Collect the unique order total values from the orderheader table and store them together
+            // with a datetime they were collected and the number of orderheader records present in the table
+            // in a property for a better performance
+            Function LoadOrderTotals Returns tOrderTotals
+                tOrderTotals OrderTotals
+                DateTime dtNow
+                TimeSpan tsSinceLastUpdate
+                Integer iElement iOrderheaderRecords iSecondsPassed
+
+                Get pOrderTotals to OrderTotals
+
+                Move (CurrentDateTime ()) to dtNow
+                If (not (IsNullDateTime (OrderTotals.dtUpdate))) Begin
+                    Move (dtNow - OrderTotals.dtUpdate) to tsSinceLastUpdate
+                    Move (SpanTotalSeconds (tsSinceLastUpdate)) to iSecondsPassed
+                End
+                Get_Attribute DF_FILE_RECORDS_USED of OrderHeader.File_Number to iOrderheaderRecords
+                If (iOrderheaderRecords <> OrderTotals.iOrderheaderRecords or iSecondsPassed > 60) Begin
+                    Move (ResizeArray (OrderTotals.nOrderTotals, 0)) to OrderTotals.nOrderTotals
+                    Send Request_Read of oOrderHeader_DD FIRST_RECORD OrderHeader.File_Number 1
+                    While (Found)
+                        Move (SearchArray (OrderHeader.Order_Total, OrderTotals.nOrderTotals)) to iElement
+                        If (iElement = -1) Begin
+                            Move (SizeOfArray (OrderTotals.nOrderTotals)) to iElement
+                            Move OrderHeader.Order_Total to OrderTotals.nOrderTotals[iElement]
+                        End
+                        Send Locate_Next of oOrderHeader_DD
+                    Loop
+                    Move (CurrentDateTime ()) to OrderTotals.dtUpdate
+                    Get_Attribute DF_FILE_RECORDS_USED of OrderHeader.File_Number to OrderTotals.iOrderheaderRecords
+                    Move (SortArray (OrderTotals.nOrderTotals)) to OrderTotals.nOrderTotals
+                    Set pOrderTotals to OrderTotals
+                End
+
+                Function_Return OrderTotals
+            End_Function
+
+            // When the user selects a row from the suggestionlist copy that value to the form
+            Procedure OnSelectSuggestion String sSearch tSuggestion Suggestion
+                WebSet psValue to Suggestion.aValues[0]
+            End_Procedure
+
+            // Return the array with ordertotal information
+            Function OrderTotalData Returns Number[]
+                tOrderTotals OrderTotals
+
+                Get LoadOrderTotals to OrderTotals
+
+                Function_Return OrderTotals.nOrderTotals
+            End_Function
+
+            // Find through the collected list of ordertotal values.
+            Procedure OnFindSuggestions String sSearch tSuggestion[] ByRef aSuggestions
+                Number[] nOrderTotals
+                Integer iOrderTotalsElements iOrderTotalsElement iSuggestionElement iMaxResults
+
+                Forward Send OnFindSuggestions sSearch (&aSuggestions)
+
+                Get OrderTotalData to nOrderTotals
+                Move (SizeOfArray (nOrderTotals)) to iOrderTotalsElements
+                If (iOrderTotalsElements > 0) Begin
+                    Decrement iOrderTotalsElements
+
+                    WebGet piMaxResults to iMaxResults
+
+                    For iOrderTotalsElement from 0 to iOrderTotalsElements
+                        If (nOrderTotals[iOrderTotalsElement] contains sSearch) Begin
+                            // For a good working cWebSuggestionForm it is important to have a unique rowid.
+                            // A number as long as it is not 0 will do
+                            Move (iSuggestionElement + 1) to aSuggestions[iSuggestionElement].sRowId
+                            Move nOrderTotals[iOrderTotalsElement] to aSuggestions[iSuggestionElement].aValues[0]
+                            Increment iSuggestionElement
+                            If (iSuggestionElement > iMaxResults) Begin
+                                Procedure_Return
+                            End
+                        End
+                    Loop
+                End
+            End_Procedure
+        End_Object
+    End_Object
+
+    Object oRunButton is a cWebButton
+        Set psCaption to "Run Report"
+        Set piColumnSpan to 3
+
+        Procedure OnClick
+            Send RunReport
+        End_Procedure
+    End_Object
+
+    Object oReportResults is a cWebIFrame
+        Set pbFillHeight to True
+        Set pbShowBorder to True
+        Set phoReportViewer of oReport to Self
+    End_Object
+End_Object

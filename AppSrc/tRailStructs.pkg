@@ -1,0 +1,21 @@
+Struct tRailLoc
+    Number nLat
+    Number nLong
+End_Struct
+
+Struct tRailStation
+    { Name="name" }
+    String sName
+    tRailLoc loc
+End_Struct
+
+Struct tRailLine
+    { Name="trace" }
+    String sName
+    tRailLoc[] aPoints
+End_Struct
+
+Struct tRailData
+    tRailStation[] stations    
+    tRailLine[] lines
+End_Struct

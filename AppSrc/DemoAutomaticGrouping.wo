@@ -1,0 +1,105 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cCustomerDataDictionary.dd
+Use cWebColumnCombo.pkg
+Use cWebHtmlBox.pkg
+
+Object oDemoAutomaticGrouping is a cWebView
+    Object oCustomer_DD is a cCustomerDataDictionary
+    End_Object
+
+    Set Main_DD to oCustomer_DD
+    Set Server to oCustomer_DD
+    Set psCaption to "Automatic Grouping" 
+    Set piMinWidth to 500
+    Set piMaxWidth to 1200
+    
+    Procedure OnLoad
+        Forward Send OnLoad
+        Send Find of oCustomer_DD FIRST_RECORD 1
+        Send MoveToFirstRow of oCustomerWebList
+    End_Procedure
+     
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 15
+
+        Object oWebHtmlBox1 is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to "(right-click on the header to make your grouping selection)"
+            Set piRowIndex to -1
+            Set piColumnIndex to -1
+        End_Object
+       
+        // place controls here
+        // Your view will grow as controls are added
+        
+        Object oCustomerWebList is a cWebList
+            Set Server to oCustomer_DD
+            Set peDbGridType to gtAllData
+            Set peGrouping to grpAutomatic
+            Set pbFillHeight to True            
+
+            Object oCustomer_State is a cWebColumn
+                Entry_Item Customer.State
+                Set psCaption to "State"
+                Set piWidth to 50
+                Set pbHidden to True
+            End_Object
+            
+            Object oCustomer_Customer_Number is a cWebColumn
+                Entry_Item Customer.Customer_Number
+                Set psCaption to "Number"
+                Set piWidth to 95
+            End_Object
+
+            Object oCustomer_Name is a cWebColumn
+                Entry_Item Customer.Name
+                Set psCaption to "Customer Name"
+                Set piWidth to 357
+            End_Object
+
+            Object oCustomer_City is a cWebColumn
+                Entry_Item Customer.City
+                Set psCaption to "City"
+                Set piWidth to 300
+                Set pbHidden to True
+            End_Object
+
+            Object oCustomer_Zip is a cWebColumn
+                Entry_Item Customer.Zip
+                Set psCaption to "Zip"
+                Set piWidth to 161
+                Set pbSortable to False
+            End_Object
+
+            Object oCustomer_Balance is a cWebColumn
+                Entry_Item Customer.Balance
+                Set psCaption to "Balance"
+                Set piWidth to 185
+            End_Object            
+            
+            Object oCustomer_Phone_Number is a cWebColumn
+                Entry_Item Customer.Phone_Number
+                Set psCaption to "Phone#"
+                Set piWidth to 209
+                Set pbSortable to False
+            End_Object
+
+
+            Procedure OnLoad
+                tWebGroupConfig[] aGroups
+                
+                Get piColumnId of oCustomer_State to aGroups[0].iColumnId
+                Get psCaption of oCustomer_State to aGroups[0].sLabel
+                
+                Send ApplyGroupConfig aGroups True
+            End_Procedure
+
+        End_Object
+        
+    End_Object 
+
+End_Object

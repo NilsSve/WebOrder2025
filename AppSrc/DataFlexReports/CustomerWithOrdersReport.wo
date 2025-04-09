@@ -1,0 +1,225 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebCheckBox.pkg
+Use cWebTabContainer.pkg
+Use cWebTabPage.pkg
+Use cWebCombo.pkg
+Use cWebEdit.pkg
+Use cWebIFrame.pkg
+
+Use cDRReport.pkg
+
+// The last (4th) tab in this customer order entry view contains a DataFlex Reports implementation
+// where the report is automatically executed when a different row from the customer table is chosen
+
+Use cCustomerDataDictionary.dd
+
+Object oCustomerWithOrdersReport is a cWebView
+    Set piColumnCount to 10
+    Set psCaption to "Customer With Orders"
+    Set piWidth to 600
+    Set psStateViewName to "Customer"
+
+    Object oCustomerDataDictionary is a cCustomerDataDictionary
+        Procedure OnPostFind Integer eMessage Boolean bFound
+            Boolean bAppSynching
+            Handle hoCard
+
+            Get AppSynching to bAppSynching
+            If (not (bAppSynching)) Begin
+                Get CurrentCard of oWebTabContainer to hoCard
+                If (hoCard = oOrdersReportTab and eMessage <> DDFindClear and bFound) Begin
+                    Send GenerateReport of oReport
+                End
+            End
+        End_Procedure
+    End_Object
+
+    Set Main_DD to oCustomerDataDictionary
+    Set Server to oCustomerDataDictionary
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oCustomerCustomer_Number is a cWebForm
+            Entry_Item Customer.Customer_Number
+            Set piColumnSpan to 5
+            Set piColumnIndex to 0
+            Set psLabel to "Customer Num:"
+            Set peLabelAlign to alignRight
+        End_Object
+
+        Object oCustomerName is a cWebForm
+            Entry_Item Customer.Name
+            Set piColumnSpan to 7
+            Set piColumnIndex to 5
+            Set psLabel to "Name:"
+            Set peLabelAlign to alignRight
+            Set piLabelOffset to 60
+        End_Object
+
+        Object oWebTabContainer is a cWebTabContainer
+            Set piColumnSpan to 12
+            Set pbShowLabel to False
+            Set pbServerOnCardChange to True
+            Set pbFillHeight to True
+
+            Object oAddressTab is a cWebTabPage
+                Set piColumnCount to 10
+                Set psCaption to "Address"
+
+                Object oCustomerAddress is a cWebForm
+                    Entry_Item Customer.Address
+                    Set piColumnSpan to 9
+                    Set piColumnIndex to 0
+                    Set psLabel to "Street Address:"
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerCity is a cWebForm
+                    Entry_Item Customer.City
+                    Set piColumnSpan to 5
+                    Set piColumnIndex to 0
+                    Set psLabel to "City / State / Zip:"
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerState is a cWebCombo
+                    Entry_Item Customer.State
+                    Set piColumnSpan to 2
+                    Set piColumnIndex to 5
+                    Set pbShowLabel to False
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerZip is a cWebForm
+                    Entry_Item Customer.Zip
+                    Set piColumnSpan to 2
+                    Set piColumnIndex to 7
+                    Set pbShowLabel to False
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerPhone_Number is a cWebForm
+                    Entry_Item Customer.Phone_Number
+                    Set piColumnSpan to 5
+                    Set piColumnIndex to 0
+                    Set psLabel to "Phone Number:"
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerFax_Number is a cWebForm
+                    Entry_Item Customer.Fax_Number
+                    Set piColumnSpan to 4
+                    Set piColumnIndex to 5
+                    Set psLabel to "Fax:"
+                    Set peLabelAlign to alignRight
+                    Set piLabelOffset to 50
+                End_Object
+
+                Object oCustomerEMail_Address is a cWebForm
+                    Entry_Item Customer.EMail_Address
+                    Set piColumnSpan to 8
+                    Set piColumnIndex to 0
+                    Set psLabel to "E-Mail Address:"
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerStatus is a cWebCheckBox
+                    Entry_Item Customer.Status
+                    Set piColumnIndex to 0
+                    Set psCaption to "Active Customer"
+                    Set piColumnSpan to 8
+                    Set pbShowLabel to True
+                End_Object
+            End_Object
+
+            Object oBalancesTab is a cWebTabPage
+                Set piColumnCount to 12
+                Set psCaption to "Balances"
+
+                Object oCustomerCredit_Limit is a cWebForm
+                    Entry_Item Customer.Credit_Limit
+                    Set piColumnSpan to 6
+                    Set piColumnIndex to 0
+                    Set psLabel to "Credit Limit:"
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerPurchases is a cWebForm
+                    Entry_Item Customer.Purchases
+                    Set piColumnSpan to 6
+                    Set piColumnIndex to 0
+                    Set psLabel to "Total Purchases:"
+                    Set peLabelAlign to alignRight
+                End_Object
+
+                Object oCustomerBalance is a cWebForm
+                    Entry_Item Customer.Balance
+                    Set piColumnSpan to 6
+                    Set piColumnIndex to 0
+                    Set psLabel to "Balance Due:"
+                    Set peLabelAlign to alignRight
+                End_Object
+            End_Object
+
+            Object oCommentsTab is a cWebTabPage
+                Set psCaption to "Comments"
+
+                Object oCustomerComments is a cWebEdit
+                    Entry_Item Customer.Comments
+                    Set piColumnSpan to 0
+                    Set piColumnIndex to 0
+                    Set pbShowLabel to False
+                    Set peLabelAlign to alignRight
+                    Set piHeight to 200
+                End_Object
+            End_Object
+
+            Object oOrdersReportTab is a cWebTabPage
+                Set psCaption to "Orders"
+
+                Object oReportResults is a cWebIFrame
+                    Set pbFillHeight to True
+                    Set pbShowBorder to True
+                End_Object
+
+                Object oReport is a cDRReport
+                    Set psReportName to "CustomerOrders.DR"
+                    Set phoReportViewer to oReportResults
+
+                    Procedure OnInitializeReport
+                        Forward Send OnInitializeReport
+
+                        Send SetFilters
+                    End_Procedure
+
+                    Procedure SetFilters
+                        Integer iCustomerNumber
+                        String sReportId
+
+                        Get psReportId to sReportId
+                        Send RemoveAllFilters sReportId  // clear any previous filters
+
+                        Get Field_Current_Value of oCustomerDataDictionary Field Customer.Customer_Number to iCustomerNumber
+                        If (iCustomerNumber > 0) Begin
+                            Send AddFilter sReportId "{Customer.Customer_Number}" C_drEqual iCustomerNumber
+                        End
+                    End_Procedure
+                End_Object
+            End_Object
+
+            // Generate the output when the user selects the orders tab page. The report is not being run when
+            // browsing through the rows of the customer table while one of the other tab pages is active. This
+            // event makes sure the user looks at the correct results.
+            Procedure OnCardChange String sNewSelectedTab String sPrevSelectedTab
+                Forward Send OnCardChange sNewSelectedTab sPrevSelectedTab
+
+                If (sNewSelectedTab = 'oOrdersReportTab') Begin
+                    Send GenerateReport of oReport
+                End
+            End_Procedure
+        End_Object
+    End_Object
+End_Object

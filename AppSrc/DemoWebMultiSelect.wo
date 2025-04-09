@@ -1,0 +1,151 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebMultiSelectList.pkg
+Use cWebColumnSelectionIndicator.pkg
+
+Use cCustomerDataDictionary.dd
+Use cSalesPersonDataDictionary.dd
+Use cOrderHeaderDataDictionary.dd
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+Use cOrderDetailDataDictionary.dd
+
+Object oDemoWebMultiSelect is a cWebView
+    Object oVendor_DD is a cVendorDataDictionary
+    End_Object
+
+    Object oInventory_DD is a cInventoryDataDictionary
+        Set DDO_Server to oVendor_DD
+    End_Object
+
+    Object oSalesPerson_DD is a cSalesPersonDataDictionary
+    End_Object
+
+    Object oCustomer_DD is a cCustomerDataDictionary
+    End_Object
+
+    Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+        Set DDO_Server to oSalesPerson_DD
+        Set DDO_Server to oCustomer_DD
+        // this lets you save a new parent DD record from within child DD
+        Set Allow_Foreign_New_Save_State to True
+    End_Object
+
+    Object oOrderDetail_DD is a cOrderDetailDataDictionary
+        Set DDO_Server to oInventory_DD
+        Set DDO_Server to oOrderHeader_DD
+        Set Constrain_File to OrderHeader.File_Number
+    End_Object
+
+    Set Main_DD to oOrderDetail_DD
+    Set Server to oOrderDetail_DD
+
+    Set piWidth to 700
+    Set psCaption to "Multi Select Demo"
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oOrderHeaderOrder_Number is a cWebForm
+            Entry_Item OrderHeader.Order_Number
+            Set piColumnSpan to 12
+            Set piColumnIndex to 0
+            Set psLabel to "Order Number:"
+            Set peLabelAlign to alignRight
+        End_Object
+        
+        Object oDetailGrid is a cWebMultiSelectList
+            Set Server to oOrderDetailDataDictionary
+            Set pbFillHeight to True
+            
+            Set peDbGridType to gtAllData
+            Set pbSelectionByRow to False
+            Set pbAllowDeleteRow to True
+            
+            Object oMultiSelect is a cWebColumnSelectionIndicator
+                Set piWidth to 130
+                Set pbSelectAllCheckbox to True
+            End_Object
+            
+            Object oInventoryItem_ID is a cWebColumn
+                Entry_Item Inventory.Item_ID
+                Set psCaption to "Item ID"
+                Set piWidth to 130
+            End_Object
+            
+            Object oInventoryDescription is a cWebColumn
+                Entry_Item Inventory.Description
+                Set psCaption to "Description"
+                Set piWidth to 320
+            End_Object
+            
+            Object oInventoryUnit_Price is a cWebColumn
+                Entry_Item Inventory.Unit_Price
+                Set psCaption to "Unit Price"
+                Set piWidth to 94
+            End_Object
+            
+            Object oOrderDetailPrice is a cWebColumn
+                Entry_Item OrderDetail.Price
+                Set psCaption to "Price"
+                Set piWidth to 94
+            End_Object
+            
+            Object oOrderDetailQty_Ordered is a cWebColumn
+                Entry_Item OrderDetail.Qty_Ordered
+                Set psCaption to "Quantity"
+                Set piWidth to 94
+            End_Object
+            
+            Object oOrderDetailExtended_Price is a cWebColumn
+                Entry_Item OrderDetail.Extended_Price
+                Set psCaption to "Total"
+                Set piWidth to 115
+            End_Object
+            
+            Object oMenu is a cWebContextMenu
+                Set peContext to C_WebUIContextListSelection
+                
+                Object oItem1 is a cWebMenuItem
+                    Set psCaption to "List Selection"
+                    
+                    Procedure OnClick
+                        Boolean bOk
+                        Integer iCounter
+                        String sRowIds
+                        String[] asRowIds
+                        String[] asDescriptions
+                        
+                        WebGet psContextValue of oMenu to sRowIds
+                        
+                        If (sRowIds <> "empty") Begin
+                            Move (StrSplitToArray(sRowIds, ",")) to asRowIds
+                            
+                            For iCounter from 0 to (SizeOfArray(asRowIds) - 1)
+                                
+                                // We need to look them up through the global buffer.
+                                // A find on the DD will perform a gridrefresh disabling the all-selected checkbox since the data has changed.
+                                
+                                Move (FindByRowId(OrderDetail.File_Number, DeserializeRowID(asRowIds[iCounter]))) to bOk
+                                If bOk Begin
+                                    Move OrderDetail.Item_ID to Inventory.Item_ID
+                                    Find EQ Inventory by 1
+                                    Move (Trim(Inventory.Description)) to asDescriptions[SizeOfArray(asDescriptions)]
+                                End
+                            Loop
+                        End
+                        
+                        If (SizeOfArray(asDescriptions) > 0) Begin
+                            Send ShowInfoBox (SFormat("You selected the following items: %1", StrJoinFromArray(asDescriptions, ", "))) "Multi Select Demo"
+                        End
+                        Else Begin
+                            Send ShowInfoBox "You didn't make a selection." "Multi Select Demo"
+                        End
+                    End_Procedure
+                End_Object
+            End_Object
+        End_Object
+        
+    End_Object 
+
+End_Object

@@ -1,0 +1,336 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebDynamicObjectContainer.pkg
+Use cWebFloatingPanel.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cWebButton.pkg
+Use cWebHtmlBox.pkg
+Use cWebLabel.pkg
+Use cWebGroup.pkg
+
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+
+//  Struct for maintaining the shopping cart
+Struct tDwCartItem
+    String sProductID
+    Integer iQty
+End_Struct
+
+//  Classes for the different dynamic objects
+Class cDwProductGrp is a cWebGroup
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set piColumnSpan to 4
+        Set piHeight to 200
+        Set piColumnCount to 2
+    End_Procedure
+End_Class
+
+Class cDwProductDesc is a cWebLabel
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set piColumnSpan to 2
+        Set pbFillHeight to True
+    End_Procedure
+End_Class
+
+Class cDwProductAdd is a cWebButton
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set piColumnSpan to 1
+        Set piColumnIndex to 1
+        Set psCaption to "Add"
+        
+        { WebProperty=Server }
+        Property String psItemID ""
+    End_Procedure
+    
+    Procedure OnClick
+        String sItemId
+        Handle hoQtyFrm
+        Integer iQty
+        
+        WebGet psItemID to sItemId
+        
+        Get DynamicObject (Replaces(" ", sItemId, "_") + "_qty") to hoQtyFrm
+        WebGet psValue of hoQtyFrm to iQty
+        
+        WebSet psValue of hoQtyFrm to 1
+        
+        Delegate Send AddProduct sItemId iQty
+    End_Procedure
+End_Class
+
+Class cDwProductQty is a cWebForm
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set piColumnIndex to 0
+        Set piColumnSpan to 1
+        Set pbShowLabel to False
+        Set psLabel to ""
+        Set peDataType to typeNumber
+        Set piPrecision to 0
+        Set psValue to 1
+    End_Procedure
+End_Class
+
+Class cDwProductContainer is a cWebGroup
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set pbShowBorder to False
+        Set pbShowCaption to False
+        Set piColumnSpan to 0
+        Set piColumnIndex to 0
+        Set piColumnCount to 12
+    End_Procedure
+End_Class
+
+Class cDwVendorGrp is a cWebGroup
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set piColumnSpan to 0
+        Set piColumnIndex to 0
+        Set piColumnCount to 12
+        Set pbShowBorder to True
+        Set pbShowCaption to False
+    End_Procedure    
+End_Class
+
+Class cDwVendorLbl is a cWebLabel
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set piColumnSpan to 10
+        Set piColumnIndex to 0
+        Set psCSSClass to "LabelCaption"
+    End_Procedure
+End_Class
+
+Class cDwVendorExpandBtn is a cWebButton
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set psCaption to "+"
+        Set piColumnIndex to 10
+        Set piColumnSpan to 2
+        
+        { WebProperty=Server }
+        Property String psVendorId ""
+        { WebProperty=Server }
+        Property Boolean pbProductsVisible False
+    End_Procedure
+    
+    Procedure OnClick
+        Boolean bVisible
+        String sVendorId
+        
+        WebGet pbProductsVisible to bVisible
+        WebGet psVendorId to sVendorId
+        
+        If (bVisible) Begin
+            Delegate Send HideProducts sVendorId
+            WebSet psCaption to "+"
+        End
+        Else Begin
+            Delegate Send ShowProducts sVendorId
+            WebSet psCaption to "-"
+        End
+        
+        WebSet pbProductsVisible to (not(bVisible))
+    End_Procedure
+End_Class
+
+Object oDemoDynamicObjects is a cWebView
+    
+    Object oVendor_DD is a cVendorDataDictionary
+    End_Object
+
+    Object oInventory_DD is a cInventoryDataDictionary
+        Set Constrain_file to Vendor.File_number
+        Set DDO_Server to oVendor_DD
+    End_Object
+
+    Set Main_DD to oVendor_DD
+    Set Server to oVendor_DD
+
+    Set piWidth to 700
+    Set psCaption to "Dynamic Web Objects Shop"
+    
+    { WebProperty=ServerSession }
+    Property tDwCartItem[] paShoppingCart
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oDescriptionHtml is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to @"<p>The demo below shows how to use dynamic objects to dynamically render controls based on data from the database. For each vendor a group is rendered that when expanded will show all the items available for that vendor. These items can then be added to a shopping cart maintained in a server web property and shown in a list.</p>
+                            <p>Classes are used to simplify and optimize the creation of the dynamic objects. By using classes and setting default values to properties in Construct_Object the InitDynamicProp function is only used on properties that are actually different for the different instances.</p>"
+        End_Object
+
+        Object oWebDynamicObjectContainer1 is a cWebDynamicObjectContainer
+            Set piColumnCount to 12
+            
+            Procedure RenderVendors
+                String sId
+                Handle hoGroup hoLabel hoButton
+                
+                Send ResetContainer
+                
+                Send Find of oVendor_DD FIRST_RECORD 2
+                
+                While (Found)
+                    Move (Trim(Vendor.ID)) to sId
+                    Get CreateDynamicObject (RefClass(cDwVendorGrp)) (sId + "_vgrp") "" to hoGroup
+                    
+                    Get CreateDynamicObject (RefClass(cDwVendorLbl)) (sId + "_vlbl") (sId + "_vgrp") to hoLabel
+                    Send InitDynamicProp of hoLabel "psCaption" (Trim(Vendor.Name))
+                    
+                    Get CreateDynamicObject (RefClass(cDwVendorExpandBtn)) (sId + "_vexpbtn") (sId + "_vgrp") to hoButton
+                    Send InitDynamicProp of hoButton "psVendorId" sId
+                    
+                    Send Find of oVendor_DD NEXT_RECORD 2
+                Loop
+                
+                Send Activate
+            End_Procedure
+            
+            Procedure ShowProducts String sVendorId
+                String sId
+                Integer iCount
+                Handle hoGroup hoLabel hoAddBtn hoVendorGrp hoProductContainer
+                
+                Send Clear of oVendor_DD
+                Move sVendorId to Vendor.ID
+                Send Find of oVendor_DD EQ 1
+                
+                If (Found) Begin
+                    Get CreateDynamicObject (RefClass(cDwProductContainer)) (sVendorId + "_pcgrp") (sVendorId + "_vgrp") to hoProductContainer 
+                    
+                    Send Find of oInventory_DD FIRST_RECORD 1
+                    While (Found)
+                        Move (Replaces(" ", Trim(Inventory.Item_ID), "_")) to sId
+                        
+                        Get CreateDynamicObject (RefClass(cDwProductGrp)) (sId + "_grp") (sVendorId + "_pcgrp") to hoGroup
+                        Send InitDynamicProp of hoGroup "psCaption" (Trim(Inventory.Item_ID))
+                        Send InitDynamicProp of hoGroup "piColumnIndex" (Mod(iCount, 3) * 4)
+                        
+                        Get CreateDynamicObject (RefClass(cDwProductDesc)) (sId + "_desc") (sId + "_grp") to hoLabel
+                        Send InitDynamicProp of hoLabel "psCaption" (Trim(Inventory.Description))
+                        
+                        Get CreateDynamicObject (RefClass(cDwProductQty)) (sId + "_qty") (sId + "_grp") to hoAddBtn
+                        
+                        Get CreateDynamicObject (RefClass(cDwProductAdd)) (sId + "_add") (sId + "_grp") to hoAddBtn
+                        Send InitDynamicProp of hoAddBtn "psItemID" (Trim(Inventory.Item_ID))
+                        
+                        Increment iCount
+                        
+                        Send Find of oInventory_DD NEXT_RECORD 1
+                    Loop
+                    
+                    Send AppendDynamicObject (sVendorId + "_pcgrp")
+                End
+            End_Procedure
+            
+            Procedure HideProducts String sVendorId
+                Send DestroyDynamicObject (sVendorId + "_pcgrp") 
+            End_Procedure
+        End_Object
+
+    End_Object 
+    
+    
+    Object oCartPnl is a cWebFloatingPanel
+        Set pePosition to fpFloatFixed
+        Set piWidth to 200
+        Set piTop to 100
+        Set piRight to 20
+        Set psCssClass to "Shadow"
+        Set pbVisible to True
+
+        Object oCartList is a cWebList
+            Set pbScroll to False
+            Set pbDataAware to False
+            
+            Object oProductIdCol is a cWebColumn
+                Set psCaption to "Product"
+                Set piWidth to 698
+            End_Object
+
+            Object oQtyCol is a cWebColumn
+                Set psCaption to "QTY"
+                Set piWidth to 301
+            End_Object
+
+            Procedure OnManualLoadData tWebRow[]  ByRef aTheRows String  ByRef sCurrentRowID
+                tDwCartItem[] aCart
+                Integer iItem iProdCol iQtyCol
+                
+                Get piColumnId of oProductIdCol to iProdCol
+                Get piColumnId of oQtyCol to iQtyCol
+                
+                WebGet paShoppingCart of oDemoDynamicObjects to aCart
+                
+                For iItem from 0 to (SizeOfArray(aCart) - 1)
+                    Get LoadGridRow to aTheRows[iItem]
+                    Move aCart[iItem].sProductID to aTheRows[iItem].sRowId
+                    Move aCart[iItem].sProductID to aTheRows[iItem].aCells[iProdCol].sValue
+                    Move aCart[iItem].iQty to aTheRows[iItem].aCells[iQtyCol].sValue
+                Loop
+            End_Procedure
+        End_Object    
+
+        Object oClearCartBtn is a cWebButton
+            Set piColumnSpan to 0
+            Set psCaption to "Empty Cart"
+        
+            Procedure OnClick
+                tDwCartItem[] aEmptyCart
+                
+                WebSet paShoppingCart of oDemoDynamicObjects to aEmptyCart
+                
+                Send GridRefresh of oCartList
+            End_Procedure
+        End_Object
+    End_Object
+    
+    Procedure AddProduct String sItem Integer iQty
+        tDwCartItem[] aCart
+        tDwCartItem newItm
+        Integer iPos
+        
+        WebGet paShoppingCart to aCart
+        
+        Move sItem to newItm.sProductID
+        
+        Move (BinarySearchArray(newItm, aCart)) to iPos
+        If (iPos >= 0) Begin
+            Move (aCart[iPos].iQty + iQty) to aCart[iPos].iQty
+        End
+        Else Begin
+            Move iQty to newItm.iQty
+            Move (InsertInArray(aCart, BinarySearchInsertPos(), newItm)) to aCart
+        End
+        
+        WebSet paShoppingCart to aCart
+        
+        Send GridRefresh of oCartList
+    End_Procedure
+    
+    Procedure OnBeforeShow
+        Send RenderVendors of oWebDynamicObjectContainer1
+        Send GridRefresh of oCartList
+    End_Procedure
+    
+
+
+End_Object

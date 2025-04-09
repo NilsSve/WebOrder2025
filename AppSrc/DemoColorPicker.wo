@@ -1,0 +1,97 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebColorForm.pkg
+Use cWebColorPicker.pkg
+
+Object oDemoColorPicker is a cWebView
+    Set piWidth to 700
+    Set psCaption to "Color Picker"
+    
+    // Your DDO structure will go here
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oWebColorForm1 is a cWebColorForm
+            Set piColumnSpan to 6
+            Set psLabel to "Color form:"
+            Set psValue to "#e64812"
+        End_Object
+        
+        Object oWebColorForm2 is a cWebColorForm
+            Set piColumnSpan to 6
+            Set psLabel to "Form with RGB:"
+            Set psValue to "rgb(40,40,40)"
+            Set piColumnIndex to 6
+            Set peColorFormat to colorFormatRGB
+            
+            Procedure OnDefinePalette
+                Send AddPaletteItem "#E8EAF6" "50"
+                Send AddPaletteItem "#C5CAE9" "100"
+                Send AddPaletteItem "#9FA8DA" "200"
+                Send AddPaletteItem "#7986CB" "300"
+                Send AddPaletteItem "#5C6BC0" "400"
+                Send AddPaletteItem "#3F51B5" "500"
+                Send AddPaletteItem "#3949AB" "600"
+                Send AddPaletteItem "#303F9F" "700"
+                
+                Send AddPaletteItem "#283593" "800"
+                Send AddPaletteItem "#1A237E" "900"
+                Send AddPaletteItem "#7f1aa2" "Purple"
+                Send AddPaletteItem "#808080" "Gray"
+                Send AddPaletteItem "#ffffff" "Light"
+                Send AddPaletteItem "#ffa500" "Orange"
+                Send AddPaletteItem "#090000" "Dark"
+                Send AddPaletteItem "#F44336" "Red 500"
+                
+            End_Procedure
+        End_Object
+        
+        Object oWebColorPicker1 is a cWebColorPicker
+            Set piColumnSpan to 6
+            Set pbShowLabel to True
+            Set psValue to "#4da8e8"
+            Set peLabelPosition to lpTop
+            Set piHeight to 320
+            Set pbShowColorBar to False
+            Set psLabel to "Standalone picker:"
+        End_Object
+        
+        Object oWebColorPicker3 is a cWebColorPicker
+            Set piColumnSpan to 6
+            Set pbShowLabel to True
+            Set psValue to "#4da8e8"
+            Set piColumnIndex to 6
+            Set peLabelPosition to lpTop
+            Set psLabel to "Full featured:"
+            Set piHeight to 320
+            
+            
+            Procedure OnDefinePalette
+                Send AddPaletteItem "#E8EAF6" "50"
+                Send AddPaletteItem "#C5CAE9" "100"
+                Send AddPaletteItem "#9FA8DA" "200"
+                Send AddPaletteItem "#7986CB" "300"
+                Send AddPaletteItem "#5C6BC0" "400"
+                Send AddPaletteItem "#3F51B5" "500"
+                Send AddPaletteItem "#3949AB" "600"
+                Send AddPaletteItem "#303F9F" "700"
+                
+                Send AddPaletteItem "#283593" "800"
+                Send AddPaletteItem "#1A237E" "900"
+                Send AddPaletteItem "#7f1aa2" "Purple"
+                Send AddPaletteItem "#808080" "Gray"
+                Send AddPaletteItem "#ffffff" "Light"
+                Send AddPaletteItem "#ffa500" "Orange"
+                Send AddPaletteItem "#090000" "Dark"
+                Send AddPaletteItem "#F44336" "Red 500"
+                
+            End_Procedure
+        End_Object
+        
+        
+    End_Object
+    
+End_Object
+

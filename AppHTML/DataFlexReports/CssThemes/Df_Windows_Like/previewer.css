@@ -1,0 +1,84 @@
+/* GENERAL STYLES */
+.DR_Toolbar{
+ 
+}
+
+.DR_Toolbar .DR_Inner{
+  background: #fcfcfc;
+  background: -moz-linear-gradient(top,  #fcfcfc 0%, #f2f2f2 100%);
+  background: -webkit-linear-gradient(top,  #fcfcfc 0%,#f2f2f2 100%);
+  background: linear-gradient(to bottom,  #fcfcfc 0%,#f2f2f2 100%);
+  border: 1px solid #BDBCBC;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  -moz-box-shadow: none; /* Firefox/Mozilla */
+  -webkit-box-shadow: none; /*Safari/Chrome */
+  box-shadow: none; /* Opera & W3C */
+}
+
+/* BUTTON STYLES */
+.DR_Toolbar .DR_Inner .DR_Wrapper{
+  border: 1px solid transparent;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover{
+  background: #C0DDFC;	
+  border: 1px solid #3399FF;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+/* PAGE INDICATOR STYLES */
+.DR_Toolbar .DR_Inner .DR_PageIndicator .DR_CurrentPage,
+.DR_Toolbar .DR_Inner .DR_PageIndicator .DR_LastPage {
+  color: #000;
+  border: 1px solid #DBE0E6;
+}
+
+.DR_Toolbar.active .DR_Inner .DR_PageIndicator .DR_CurrentPage{
+  border: 1px solid #3399FF;
+}
+
+/* SEPARATOR STYLES */
+.DR_Toolbar .DR_Inner .DR_Separator{
+  width: 1px;
+  border-left: 1px solid #FFFFFF;
+  background: #D5DFE5;
+}
+
+/* ICON STYLES */
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PrintButton, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ExportButton, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PreviousButton, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_NextButton,
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomInButton,
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomOutButton{
+  margin: 0px;
+	background-image: url('../../Images/Df_Windows_Like_Toolbar.png');
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PrintButton{
+  background-position: 2px 2px;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ExportButton{
+  background-position: -20px 2px;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PreviousButton{
+  background-position: -20px 2px;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_NextButton{
+  background-position: -42px 2px;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomInButton{
+  background-position: -64px 2px;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomOutButton{
+  background-position: -86px 2px;
+}

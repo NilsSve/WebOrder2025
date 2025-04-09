@@ -1,0 +1,416 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cCustomerDataDictionary.dd
+Use cWebTagsForm.pkg
+Use cWebTreeView.pkg
+Use cWebHtmlBox.pkg
+Use cWebDragDropHelper.pkg
+Use cWebDragDropFileHelper.pkg
+Use cWebLabel.pkg
+Use cWebGroup.pkg
+
+Object oDemoDragDrop is a cWebView
+    // Your DDO structure will go here
+    Object oCustomer_DD is a cCustomerDataDictionary
+    End_Object
+
+    Set Main_DD to oCustomer_DD
+    Set Server to oCustomer_DD
+    Set psCaption to "Drag 'n Drop"
+    Set piMinWidth to 700
+
+    Object oTopPanel is a cWebPanel
+        Set piColumnCount to 12
+        Set peRegion to prTop
+
+        Object oWebHtmlBox1 is a cWebHtmlBox
+            Set piColumnSpan to 0
+            Set psHtml to "<p>Drag customers arround in this view. Note that you can also drag them from the controls on the right!<p>"
+        End_Object
+    End_Object
+
+    Object oLeftPanel is a cWebPanel
+        Set piColumnCount to 12
+        Set peRegion to prLeft
+        Set piWidth to 286
+
+        Object oAllCustomers is a cWebList
+            Set piColumnSpan to 12
+            Set Server to oCustomer_DD
+            Set pbFillHeight to True
+            Set peLabelPosition to lpTop
+            Set pbShowLabel to True
+            Set psLabel to "All customers:"
+            
+            Object oCustomer_Customer_Number is a cWebColumn
+                Entry_Item Customer.Customer_Number
+                Set psCaption to "Number"
+                Set piWidth to 20
+            End_Object
+
+            Object oCustomer_Name is a cWebColumn
+                Entry_Item Customer.Name
+                Set psCaption to "Customer Name"
+                Set piWidth to 50
+            End_Object
+            
+            Procedure OnLoad
+                Send FindFromTop
+            End_Procedure
+        End_Object
+    End_Object
+
+
+    Object oMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oNiceCustomers is a cWebList
+            Set psLabel to "Nice customers:"
+            Set peLabelPosition to lpTop
+            Set pbShowLabel to True
+            Set peDbGridType to gtManual
+            
+            { WebProperty=Server }
+            Property RowID[] prRecordsShown
+
+            Set pbFillHeight to True
+            
+            Object oCustomer_Customer_Number1 is a cWebColumn
+                Entry_Item Customer.Customer_Number
+                Set psCaption to "Number"
+                Set piWidth to 20
+            End_Object
+
+            Object oCustomer_Name1 is a cWebColumn
+                Entry_Item Customer.Name
+                Set psCaption to "Customer Name"
+                Set piWidth to 50
+            End_Object
+
+            Object oCustomer_EMail_Address is a cWebColumn
+                Entry_Item Customer.EMail_Address
+                Set psCaption to "E-Mail"
+                Set piWidth to 50
+            End_Object
+        End_Object
+
+        Object oImportantCustomers is a cWebTagsForm
+            Set piColumnSpan to 0
+            Set psLabel to "Important customers:"
+            Set pbAllowCreate to True
+            Set peLabelPosition to lpTop
+            
+            Object oSelectionSource is a cSelectionSource
+            End_Object
+        End_Object
+        
+        Object oBadCustomers is a cWebList
+            Set psLabel to "Bad customers:"
+            Set peLabelPosition to lpTop
+            Set pbShowLabel to True
+            Set peDbGridType to gtManual
+            
+            { WebProperty=Server }
+            Property RowID[] prRecordsShown
+
+            Set pbFillHeight to True
+            
+            Object oCustomer_Customer_Number1 is a cWebColumn
+                Entry_Item Customer.Customer_Number
+                Set psCaption to "Number"
+                Set piWidth to 20
+            End_Object
+
+            Object oCustomer_Name1 is a cWebColumn
+                Entry_Item Customer.Name
+                Set psCaption to "Customer Name"
+                Set piWidth to 50
+            End_Object
+
+            Object oCustomer_City is a cWebColumn
+                Entry_Item Customer.City
+                Set psCaption to "City"
+                Set piWidth to 50
+            End_Object
+        End_Object
+    End_Object 
+
+    Object oRightPanel is a cWebPanel
+        Set piColumnCount to 12
+        Set peRegion to prRight
+        Set piWidth to 327
+
+        Object oSortedCustomers is a cWebTreeView
+            Set piColumnSpan to 12
+            Set peLabelPosition to lpTop
+            Set pbShowLabel to True
+            Set psLabel to "Sorted customers:"
+
+            Function OnLoadChildNodes String sId String sValue Integer iLevel Returns tWebTreeItem[]
+                tWebTreeItem[] aItems
+
+                // Populate Root Level Items
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~
+                If (iLevel = 0) Begin
+                    Move 10             to aItems[0].sId
+                    Move sId            to aItems[0].sParentId
+                    Move "Average"         to aItems[0].sName
+                    Move False          to aItems[0].bLoadChildren
+                    Move True           to aItems[0].bFolder
+                    Move True           to aItems[0].bExpanded
+                    
+                    Move 20             to aItems[1].sId
+                    Move sId            to aItems[1].sParentId
+                    Move "Nice"         to aItems[1].sName
+                    Move False          to aItems[1].bLoadChildren
+                    Move True           to aItems[1].bFolder
+                    Move True           to aItems[1].bExpanded
+                                        
+                    Move 30             to aItems[2].sId
+                    Move sId            to aItems[2].sParentId
+                    Move "Cool"         to aItems[2].sName
+                    Move False          to aItems[2].bLoadChildren
+                    Move True           to aItems[2].bFolder
+                    Move True           to aItems[2].bExpanded
+                    
+                    Move 40             to aItems[3].sId
+                    Move sId            to aItems[3].sParentId
+                    Move "Awesome"      to aItems[3].sName
+                    Move False          to aItems[3].bLoadChildren
+                    Move True           to aItems[3].bFolder
+                    Move True           to aItems[3].bExpanded
+                    
+                End
+
+                Function_Return aItems
+            End_Function
+            
+        End_Object
+    
+        Object oWebLabel1 is a cWebLabel
+            Set piColumnSpan to 0
+            Set psCaption to 'Almost all Web Controls support the DropOnControl action. The WebForm and the WebGroup below are set up to accept a drop on the entire control area.'
+        End_Object
+        
+        Object oWebFormDrop is a cWebForm
+            Set piColumnSpan to 0
+            Set peLabelPosition to lpTop
+            Set psLabel to "Drop customer here"
+        End_Object
+        
+        Object oWebGroupDrop is a cWebGroup
+            Set psCaption to "Drop customer in here"
+            Set piColumnCount to 12   
+            Set piHeight to 75
+        End_Object
+
+        
+
+//        Object oWebForm1 is a cWebCombo
+//            Set piColumnSpan to 0
+//            Set peLabelPosition to lpTop
+//            Set psLabel to "Drop customer here"
+//
+//            Procedure OnFill
+//                Forward Send OnFill
+//                
+//                Clear Customer
+//                
+//                Find GT Customer by 1
+//                While (Found)
+//                    Send AddComboItem (Trim(Customer.Name)) (Trim(Customer.Name))
+//                    Find GT Customer by 1
+//                Loop
+//            End_Procedure
+//            
+//            
+//        End_Object
+    End_Object
+    
+    
+    Object oDragDropHelper is a cWebDragDropHelper
+        Send RegisterDragSource oAllCustomers C_WebDragListRow
+        
+        Send RegisterDragSource oNiceCustomers C_WebDragListRow
+        Send RegisterDragSource oBadCustomers C_WebDragListRow
+        Send RegisterDragSource oImportantCustomers C_WebDragTagsFormTag
+        Send RegisterDragSource oSortedCustomers C_WebDragTreeviewItem
+        
+        Send RegisterDropTarget oNiceCustomers C_WebDropListRow
+        Send RegisterDropTarget oBadCustomers C_WebDropListRow
+        Send RegisterDropTarget oImportantCustomers C_WebDropTagsFormInput
+        Send RegisterDropTarget oSortedCustomers C_WebDropTreeviewFolder
+        
+        Send RegisterDropTarget oWebFormDrop C_WebDropOnControl
+        Send RegisterDropTarget oWebGroupDrop C_WebDropOnControl
+        
+        //
+        //  Determines which customer is being dragged by querying the drag data from the different source types.
+        //
+        Function CustomerFromSource Handle hoDropSource Returns RowID
+            If (IsObjectOfClass(hoDropSource, RefClass(cWebTagsForm))) Begin
+                tWebTagsFormDragData tagsDragData
+                Get DragData of hoDropSource to tagsDragData
+                
+                Clear Customer
+                Move tagsDragData.data to Customer.Name
+                Find GE Customer.Name
+                If (Found and Trim(Customer.Name) = Trim(tagsDragData.data)) Begin
+                    Function_Return (GetRowID(Customer.File_Number))
+                End
+            End
+            
+            If (IsObjectOfClass(hoDropSource, RefClass(cWebList))) Begin
+                tWebListDragData listDragData
+                Get DragData of hoDropSource to listDragData
+                
+                Function_Return (DeserializeRowID(listDragData.data.sRowId))
+            End
+            
+            If (IsObjectOfClass(hoDropSource, RefClass(cWebTreeView))) Begin
+                tWebTreeViewDragData treeDragData
+                Get DragData of hoDropSource to treeDragData
+                
+                Function_Return (DeserializeRowID(treeDragData.data.sId))
+            End
+            
+            Function_Return (NullRowID())
+        End_Function
+        
+        //  
+        //  Adds an item onto the drop target based on the provided rowid. Switches between the different target types.
+        //
+        Procedure AddCustomerToTarget RowID riCustomer Handle hoDropTarget WebDropPosition eDropPosition
+            Boolean bFound
+            String[] asTags asNewTags
+            Integer i
+            
+            Move (FindByRowID(RefTable(Customer), riCustomer)) to bFound
+            
+            If (IsObjectOfClass(hoDropTarget, RefClass(cWebTagsForm))) Begin
+                tWebTagsFormDropData tagsDropData
+                Get DropData of hoDropTarget to tagsDropData
+                
+                If (eDropPosition = C_WebDropPosEmpty) Begin
+                    Send AddTag of hoDropTarget (Customer.Name)
+                End
+                Else If (eDropPosition = C_WebDropPosBefore) Begin
+                    Send InsertTagBefore of hoDropTarget tagsDropData.data Customer.Name
+                End
+                Else If (eDropPosition = C_WebDropPosAfter) Begin
+                    Send InsertTagAfter of hoDropTarget tagsDropData.data Customer.Name
+                End
+            End
+            Else If (IsObjectOfClass(hoDropTarget, RefClass(cWebForm))) Begin   //  cWebTagsForm inherits from cWebForm
+                WebSet psValue of hoDropTarget to (Trim(Customer.Name))
+            End
+            
+            If (IsObjectOfClass(hoDropTarget, RefClass(cWebGroup))) Begin
+                String sMsg
+                Move ('Dropped customer: "' + Trim(Customer.Name) + '" on WebGroup') to sMsg
+                Send ShowInfoBox sMsg
+            End
+            
+            If (IsObjectOfClass(hoDropTarget, RefClass(cWebList))) Begin
+                tWebListDropData listDropData
+                Get DropData of hoDropTarget to listDropData
+                
+                //  Check if customer isn't already in the list
+                RowID[] riRecordsShown
+                WebGet prRecordsShown of hoDropTarget to riRecordsShown
+                If (SearchArray(riCustomer, riRecordsShown) = -1) Begin
+                    Move riCustomer to riRecordsShown[SizeOfArray(riRecordsShown)]
+                    WebSet prRecordsShown of hoDropTarget to riRecordsShown
+                   
+                    //   Now add it to the list
+                    tWebRow tListRow
+                    Get LoadGridRow of hoDropTarget to tListRow
+                    
+                    If (eDropPosition = C_WebDropPosBefore or eDropPosition = C_WebDropPosOn) Begin
+                        Send DataSetInsertRowBefore of hoDropTarget listDropData.data.sRowId tListRow
+                    End
+                    Else If (eDropPosition = C_WebDropPosAfter) Begin
+                        Send DataSetInsertRowAfter of hoDropTarget listDropData.data.sRowId tListRow
+                    End
+                    Else Begin
+                        Send DataSetAppendRow of hoDropTarget tListRow
+                    End
+                End
+            End
+            
+            If (IsObjectOfClass(hoDropTarget, RefClass(cWebTreeView))) Begin
+                //  Figure out drop data
+                tWebTreeViewDropData treeDropData
+                Get DropData of hoDropTarget to treeDropData
+                
+                //  Remove to be sure we don't get duplicates
+                Send RemoveNode of hoDropTarget (SerializeRowID(riCustomer))
+                
+                //  Create new node
+                tWebTreeItem newItem
+                
+                Move (SerializeRowID(riCustomer)) to newItem.sId
+                Move Customer.Name to newItem.sName
+                Move Customer.City to newItem.sAltText
+                Move False to newItem.bFolder
+                Move treeDropData.data.sId to newItem.sParentId //  Make it a child of what we dropped it on
+                
+                Send InsertNode of hoDropTarget newItem
+            End
+        End_Procedure
+        
+        //  
+        //  Removes an item from the drag source. Switches between the different source types.
+        //
+        Procedure RemoveCustomerFromSource Handle hoDragSource RowID riCustomer
+            If (IsObjectOfClass(hoDragSource, RefClass(cWebTagsForm))) Begin
+                Boolean bFound
+                
+                Move (FindByRowID(RefTable(Customer), riCustomer)) to bFound
+                
+                If (bFound) Begin
+                    Send RemoveTag of hoDragSource (Customer.Name)
+                End
+            End
+            
+            If (IsObjectOfClass(hoDragSource, RefClass(cWebList))) Begin
+                RowID[] riRecordsShown
+                Integer iIndex
+                
+                //  Update the extra list of shown customers we keep for both weblists.
+                WebGet prRecordsShown of hoDragSource to riRecordsShown
+                Move (SearchArray(riCustomer, riRecordsShown)) to iIndex
+                If (iIndex <> -1) Begin
+                    Move (RemoveFromArray(riRecordsShown, iIndex)) to riRecordsShown
+                    WebSet prRecordsShown of hoDragSource to riRecordsShown
+                    Send DataSetRemoveRow of hoDragSource (SerializeRowID(riCustomer))
+                End
+            End
+            
+            If (IsObjectOfClass(hoDragSource, RefClass(cWebTreeView))) Begin
+                Send RemoveNode of hoDragSource (SerializeRowID(riCustomer))
+            End
+        End_Procedure
+        
+        Procedure OnDrop Handle hoDragSource Handle hoDropTarget WebDropPosition eDropPosition
+            RowID riCustomer
+            
+            //  Determine which customer is being dragged
+            Get CustomerFromSource hoDragSource to riCustomer
+            If (not(IsNullRowID(riCustomer))) Begin
+                
+                //  Remove from the source (except for the oAllCustomers list)
+                If (hoDragSource <> oAllCustomers) Begin
+                    Send RemoveCustomerFromSource hoDragSource riCustomer
+                End
+                
+                //  Add to the target
+                Send AddCustomerToTarget riCustomer hoDropTarget eDropPosition
+            End
+        End_Procedure
+    End_Object
+
+End_Object

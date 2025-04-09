@@ -1,0 +1,732 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cWebTabContainer.pkg
+Use cWebTabPage.pkg
+Use cWebButton.pkg
+Use cWebDrawing.pkg
+Use cWebGroup.pkg
+Use cWebRadio.pkg
+Use cWebSlider.pkg
+Use cWebCheckBox.pkg
+Use cWebHtmlBox.pkg
+Use cWebBarLineChart.pkg
+Use cWebTetris.pkg
+Use tRailStructs.pkg
+
+Object oDemoWebDrawing is a cWebView
+    Set psCaption to "Drawing Control"
+    Set piMinWidth to 500
+    
+    Set peLayoutType to ltGrid
+    // Your DDO structure will go here
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        Set psRowHeights to "1/1fr"
+        Set piRowCount to 2
+
+        Object oHtmlMainDescription is a cWebHtmlBox
+            Set piColumnSpan to 12
+            Set psHtml to """
+                <p>This view demonstrates the cWebDrawing component. This control allows the developer to create vector drawings from within DataFlex code. The tabs below show different applications of this control.</p>
+                """
+            Set piRowIndex to 0
+            Set piColumnIndex to 0
+        End_Object
+
+        Object oTabContainer is a cWebTabContainer
+            Set piRowIndex to 1
+            Set piColumnIndex to 0
+            Set piColumnSpan to 12
+            Set pbFillHeight to True
+
+            Object oTabSmiley is a cWebTabPage
+                Set psCaption to "Smiley"
+                Set piColumnCount to 2
+                Set psColumnWidths to "0/306"
+                Set psRowHeights to "0/1fr"
+                
+                Object oGrpDescription is a cWebGroup
+                    Set psCaption to "Description"
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 0
+
+                    Object oWebHtmlBox2 is a cWebHtmlBox
+                        Set piColumnSpan to 0
+                        Set psHtml to """
+                            <p>This very basic example shows the purpose of the cWebDrawing. It shows how to plot lines and circles onto a canvas. It also demonstrates how to handle clicks and how to update the drawing.</p>
+                            """
+
+                        Set piRowIndex to 0
+                        Set piColumnIndex to 0
+                    End_Object
+                End_Object
+                
+                Object oSmileyDrawing is a cWebDrawing
+                    Set pbNoContextMenu to True
+                    Set pbZoomable to True
+                    Set piMinHeight to 500
+                    Set piColumnSpan to 1
+                    Set peResizeMode to wdResizeModeCrop
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 1
+                    Set pbFillHeight to True
+                    
+                    Procedure CreateSmiley                
+                        Send CreateGroup "smiley"
+                        Send StrokeColor "smiley" "green"
+                        Send EnableInteraction "smiley" wdInteractionOnMouseClick
+                        
+                        Send CreateCircle "face" (XYPoint(Self, 250, 250)) 50
+                        Send StrokeColor "face" "#000000"
+                        Send StrokeWidth "face" 5
+        
+                        Send CreateCircle "left-eye" (XYPoint(Self, 230, 230)) 10
+                        Send FillColor "left-eye" "#000000"
+                        
+                        Send CreateCircle "right-eye" (XYPoint(Self, 270, 230)) 10
+                        Send FillColor "right-eye" "#000000"
+                        
+                        Send CreatePath "mouth"
+                        Send MoveTo "mouth" (XYPoint(Self, 230, 270))
+                        Send QuadraticCurveTo "mouth" (XYPoint(Self, 250, 300)) (XYPoint(Self, 270, 270))
+                        Send StrokeColor "mouth" "#000000"
+                        Send StrokeWidth "mouth" 1
+                        
+                        Send AddTooltip "smiley" "This is a smiley!"
+                        
+                        Send EndCreateGroup "smiley"
+                
+                        Send UpdateDrawing
+                    End_Procedure
+                    
+                    Procedure OnMouseClick String sId tWebDrawingEventData eventData
+                        If (sId = "smiley") Begin
+                            Float fNewRotation
+                            Move (eventData.fRotation + 45) to fNewRotation
+                            Send Rotation sId fNewRotation
+                            
+                            Send UpdateDrawing
+                        End
+                    End_Procedure
+          
+                    Procedure OnLoad
+                        Send CreateSmiley
+                    End_Procedure
+                End_Object 
+            End_Object
+
+            Object oTabMap is a cWebTabPage
+                Set psCaption to "Rail Map"
+                Set piRowCount to 2
+                Set psRowHeights to "0/169 1/1fr"
+                Set piColumnCount to 2
+                Set psColumnWidths to "0/287"
+                Set pbServerOnShow to True
+
+                Object oGrpSettings is a cWebGroup
+                    Set psCaption to "Options"
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 0
+                    Set piRowCount to 3
+                    Set pbFillHeight to True
+
+                    Object oCheckMapLayer is a cWebCheckbox
+                        Set piColumnSpan to 0
+                        Set psCaption to "Map"
+                        Set piRowIndex to 0
+                        Set piColumnIndex to 0
+                        Set psChecked to "1"
+                        Set psUnchecked to "0"
+                        Set pbServerOnChange to True
+                        Set psValue to "1"
+
+                        Procedure OnChange String sNewValue String sOldValue
+                            Boolean bChecked
+                            
+                            Get GetChecked to bChecked
+                            
+                            Send SetVisibility of oRailDrawing "background_layer" bChecked
+                            Send UpdateDrawing of oRailDrawing
+                        End_Procedure
+                    End_Object
+
+                    Object oCheckRailwayLayer is a cWebCheckbox
+                        Set piColumnSpan to 0
+                        Set psCaption to "Railways"
+                        Set piRowIndex to 1
+                        Set piColumnIndex to 0
+                        Set psChecked to "1"
+                        Set psUnchecked to "0"
+                        Set pbServerOnChange to True
+                        Set psValue to "1"
+
+                        Procedure OnChange String sNewValue String sOldValue
+                            Boolean bChecked
+                            
+                            Get GetChecked to bChecked
+                            
+                            Send SetVisibility of oRailDrawing "railway_layer" bChecked
+                            Send UpdateDrawing of oRailDrawing
+                        End_Procedure
+                    End_Object
+
+                    Object oCheckStationLayer is a cWebCheckbox
+                        Set piColumnSpan to 0
+                        Set psCaption to "Stations"
+                        Set piRowIndex to 2
+                        Set piColumnIndex to 0
+                        Set psChecked to "1"
+                        Set psUnchecked to "0"
+                        Set pbServerOnChange to True
+                        Set psValue to "1"
+
+                        Procedure OnChange String sNewValue String sOldValue
+                            Boolean bChecked
+                            
+                            Get GetChecked to bChecked
+                            
+                            Send SetVisibility of oRailDrawing "station_layer" bChecked
+                            Send UpdateDrawing of oRailDrawing
+                        End_Procedure
+                    End_Object
+                End_Object
+
+                Object oGrpDescription is a cWebGroup
+                    Set psCaption to "Description"
+                    Set piRowIndex to 1
+                    Set piColumnIndex to 0
+
+                    Object oWebHtmlBox2 is a cWebHtmlBox
+                        Set piColumnSpan to 0
+                        Set psHtml to """
+                            <p>This example uses cWebDrawing to plot a railroad map in the Netherlands. It showcases various techniques:</p>
+                            <p>
+                                <ul>
+                                    <li>Ability to Include svg files using CreateSVG</li>
+                                    <li>The usage of layers using CreateLayer</li>
+                                    <li>Path creation using CreatePath</li>
+                                    <li>Handling click events using EnableInteraction and OnMouseClick</li>
+                                    <li>Allowing the user to pan and zoom (pbZoomable)</li>
+                                </ul>
+                            </p>
+                            """
+
+                        Set piRowIndex to 0
+                        Set piColumnIndex to 0
+                    End_Object
+                End_Object
+
+                Object oRailDrawing is a cWebDrawing
+                    Set pbNoContextMenu to True
+                    Set piDrawingWidth to 3750
+                    Set piDrawingHeight to 4400
+                    Set peResizeMode to wdResizeModeScale
+                    Set pbFillHeight to True
+                    Set pbZoomable to True
+                    Set piRowSpan to 2
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 1
+                    Set pfDefaultZoom to 1.5
+                    Set pfMaxZoom to 15
+                    
+                    Function LatLonToXY Float fLat Float fLon Returns tWebPoint
+                        Float fWidth fHeight
+                        Float fTop fLeft fBottom fRight
+                        
+                        Get piDrawingWidth to fWidth
+                        Get piDrawingHeight to fHeight
+   
+                
+                        Move 53.46247601 to fTop
+                        Move  3.59334088 to fLeft
+                        Move 50.729351 to fBottom
+                        Move  7.35439391 to fRight
+                
+                        Float fRealWidth fRealHeight
+                        Move (fTop - fBottom) to fRealHeight
+                        Move (fRight - fLeft) to fRealWidth
+                
+                        Float fX fY
+                
+                        Move ((fLon - fLeft) * fWidth / fRealWidth) to fX
+                        Move ((fLat - fBottom) * fHeight / fRealHeight) to fY
+                
+                        // Invert Y axis
+                        Float fDifference
+                        Move (fY - (fHeight / 2)) to fDifference
+                        Move ((fHeight / 2) - fDifference) to fY
+                
+                        Function_Return (XYPoint(Self, fX, fY))
+                    End_Function
+                    
+                    Function RailwayData Returns tRailData
+                        Handle hoJson
+                        tRailData tData
+                        Boolean bResult
+                        Integer iChnl
+                        UChar[] ucData
+                        
+                        //  Read the file
+                        Move (Seq_New_Channel()) to iChnl
+                        Direct_Input channel iChnl "RailData.json"
+                        Read_Block ucData -1
+                        Close_Input
+                        Send Seq_Release_Channel iChnl
+                        
+                        
+                        //  Parse railway JSON into struct
+                        Get Create (RefClass(cJsonObject)) to hoJson
+                        Get ParseUtf8 of hoJson ucData to bResult
+                        If (not (bResult)) Begin
+                            Send ReportParseError of hoJson
+                            Send Destroy of hoJson
+                            Function_Return tData
+                        End
+                        Get JsonToDataType of hoJson to tData
+                        Send Destroy of hoJson
+                        
+                        Function_Return tData
+                    End_Function
+        
+                    Procedure CreateMap
+                        tRailData data
+                        tRailStation station
+                        tWebPoint tMapTopLeft tMapBottomRight tPosition
+                        Integer iLine iPoint iStation
+                        String sId
+                        
+                        Get RailwayData to data
+                        Send ClearDrawing
+                                                
+                        Send CreateLayer "background_layer"
+                        Send CreateSVG "background_svg" "Images/Blank_map_of_the_Netherlands.svg" (XYPoint(Self, -600,-450)) (XYPoint(Self, 3800, 4650)) //tMapTopLeft tMapBottomRight
+                        //Send CreateRectangle "test" (XYPoint(Self, 0, 0)) (WHSize(Self, 3750, 4400))                        
+                        Send EndCreateLayer "background_layer"
+                        
+                        Send CreateLayer "railway_layer"
+                        
+                        For iLine from 0 to (SizeOfArray(data.lines) - 1)
+                            Move ("rail_" + String(iLine)) to sId
+                            Send CreatePath sId
+                            Send StrokeColor sId "#000000"
+                            Send StrokeWidth sId 1
+                            
+                            For iPoint from 0 to (SizeOfArray(data.lines[iLine].aPoints) - 1)
+                                Get LatLonToXY  data.lines[iLine].aPoints[iPoint].nLat data.lines[iLine].aPoints[iPoint].nLong to tPosition
+                                
+                                If (iPoint = 0) ;
+                                    Send MoveTo sId tPosition
+                                Else ;
+                                    Send LineTo sId tPosition
+                            Loop
+                        Loop
+                        
+                        Send EndCreateLayer "railway_layer"
+                        
+                        Send CreateLayer "station_layer"
+                        
+                        For iStation from 0 to (SizeOfArray(data.stations) - 1)
+                            Move data.stations[iStation] to station
+                            Get LatLonToXY station.loc.nLat station.loc.nLong to tPosition
+                            
+                            Move ("station_" + String(iStation)) to sId
+                            Send CreateGroup (sId + "_group")
+                            Send EnableInteraction (sId + "_group") wdInteractionOnMouseClick
+        
+                            Send CreateCircle sId tPosition 5
+                            Send StrokeColor sId "#000000"
+                            Send StrokeWidth sId 1
+                            Send FillColor sId "#ffffff"
+        
+                            Move (XYPoint(Self, tPosition.fX, tPosition.fY - 10)) to tPosition
+                            Send CreateText (sId + "_text") tPosition (Trim(station.sName)) "Consolas" 10 wdFontJustificationCenter "bold" "underline"
+                            Send FillColor (sId + "_text") "#000000"
+                            Send StrokeColor (sId + "_text") ""
+                            Send ShadowColor (sId + "_text") "#ffffff"
+                            Send ShadowBlur (sId + "_text") 2
+        
+                            Send EndCreateGroup (sId + "_group")
+                        Loop
+                        
+                        Send EndCreateLayer "station_layer"
+        
+                        Send UpdateDrawing
+                    End_Procedure
+        
+                    Procedure OnMouseClick String sId tWebDrawingEventData data
+                        Send ShowInfoBox (SFormat("Clicked on station %1!", sId))
+                    End_Procedure
+                End_Object
+
+                Procedure OnShow
+                    Send CreateMap of oRailDrawing
+                End_Procedure
+            End_Object
+            
+            Object oTabChart is a cWebTabPage
+                Set psCaption to "Chart"
+                Set piColumnCount to 2
+                Set psRowHeights to "1/1fr"
+                Set piRowCount to 2
+                Set psColumnWidths to "0/566"
+
+                Object oGrpSettings is a cWebGroup
+                    Set psCaption to "Options"
+                    Set piColumnCount to 3
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 0
+                    Set piColumnSpan to 1
+                    Set piRowCount to 5
+                    Set psColumnWidths to "0/148 1/1fr 2/150"
+
+                    Object oBarRadio is a cWebRadio
+                        Set piColumnSpan to 0
+                        Set psCaption to "Bar"
+                        Set psRadioValue to "BAR"
+                        Set piRowIndex to 1
+                        Set piColumnIndex to 0
+                    End_Object
+
+                    Object oSliderGroups is a cWebSlider
+                        Set piRowIndex to 1
+                        Set piColumnIndex to 1
+                        Set piColumnSpan to 1
+                        Set piMaxValue to 20
+                        Set piSliderValue to 4
+                        Set piMinValue to 1
+                        Set piMaxMarkers to 20
+                        Set psLabel to "Groups"
+                        Set peLabelPosition to lpTop
+                        Set piRowSpan to 2
+                    End_Object
+
+                    Object oUpdateBtn is a cWebButton
+                        Set psCaption to "Update"
+                        Set piRowIndex to 1
+                        Set piColumnIndex to 2
+                        Set piRowSpan to 4
+                        Set pbFillHeight to True
+                    
+                        Procedure OnClick
+                            Send CreateChart of oChartDrawing
+                        End_Procedure
+                    End_Object
+
+                    Object oLineRadio is a cWebRadio
+                        Set piColumnSpan to 0
+                        Set psCaption to "Line"
+                        Set psRadioValue to "LINE"
+                        Set piRowIndex to 2
+                        Set piColumnIndex to 0
+                    End_Object
+
+                    Object oCheckLabel is a cWebCheckbox
+                        Set piColumnSpan to 0
+                        Set psCaption to "Show label"
+                        Set piRowIndex to 3
+                        Set piColumnIndex to 0
+                        Set psChecked to "1"
+                        Set psUnchecked to "0"
+                        Set psValue to "1"
+                    End_Object
+
+                    Object oCheckLegend is a cWebCheckbox
+                        Set piColumnSpan to 0
+                        Set psCaption to "Show legend"
+                        Set piRowIndex to 4
+                        Set piColumnIndex to 0
+                        Set psChecked to "1"
+                        Set psUnchecked to "0"
+                        Set psValue to "1"
+                    End_Object
+
+                    Object oSliderPoints is a cWebSlider
+                        Set piRowIndex to 3
+                        Set piColumnIndex to 1
+                        Set piMaxValue to 100
+                        Set piMinValue to 1
+                        Set piSliderValue to 10
+                        Set psLabel to "Points"
+                        Set peLabelPosition to lpTop
+                        Set piColumnSpan to 1
+                        Set piRowSpan to 2
+                    End_Object
+                End_Object
+
+                Object oGrpDescription is a cWebGroup
+                    Set piColumnCount to 1
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 1
+                    Set pbFillHeight to True
+                    Set psCaption to "Description"
+                    Object oWebHtmlBox1 is a cWebHtmlBox
+                        Set piColumnSpan to 0
+                        Set psHtml to """
+                            <p>Comprehensive sample showcasing much of the cWebDrawing its features. The cWebDrawLineChart uses much of the features and provides a great demo how the low level drawing API’s can be turned into a higher level API.</p>
+                            """
+                        Set piRowIndex to 0
+                        Set piColumnIndex to 1
+                    End_Object
+                End_Object
+
+                Object oChartDrawing is a cWebBarLineChart
+                    Set piRowIndex to 1
+                    Set piColumnIndex to 0
+                    Set piColumnSpan to 2
+                    Set pbFillHeight to True
+                    Set piDrawingWidth to 1800
+                    Set piDrawingHeight to 600
+                    
+                    Function RandomColor Returns String
+                        Function_Return (GDIColorToHex(Self, RGB(Random(255), Random(255), Random(255))))
+                    End_Function
+                    
+                    Procedure CreateChart
+                        tDataPoint[] aDataPoints
+                        Integer iDate iDateTo iGroup iGroupTo
+                        Date dDay
+                        String sType sLabel
+                        Boolean bBar bShowLabel bLegend
+                        
+                        WebGet psValue of oBarRadio to sType
+                        Move (sType = "BAR") to bBar
+                        
+                        WebGet piSliderValue of oSliderGroups to iGroupTo
+                        WebGet piSliderValue of oSliderPoints to iDateTo
+                        Decrement iGroupTo
+                        Decrement iDateTo
+                        
+                        Get GetChecked of oCheckLabel to bShowLabel
+                        Get GetChecked of oCheckLegend to bLegend
+                        
+                        Send ClearDrawing
+                        
+                        //  Initialize data
+                        For iGroup from 0 to iGroupTo
+                            If (bBar) ;
+                                Get CreateBar ("age-group-" + String(iGroup)) (RandomColor(Self)) ("Group: " + String(iGroup + 1))  to aDataPoints[iGroup]
+                            Else ;
+                                Get CreateLine ("age-group-" + String(iGroup)) (RandomColor(Self)) ("Group: " + String(iGroup + 1))  to aDataPoints[iGroup]
+                        Loop
+                        
+                        //  Generate data
+                        For iDate from 0 to iDateTo
+                            Move (DateAddDay(CurrentDateTime(), -(iDateTo - iDate))) to dDay
+                            
+                            For iGroup from 0 to iGroupTo
+                                Move  (If(bShowLabel and iGroup = 0, dDay, "")) to sLabel
+                                Send AddDataPoint (&aDataPoints[iGroup]) (Random(10000)) sLabel
+                            Loop
+                        Loop
+                        
+                        //  Plot data
+                        Send InitializeChartDrawing aDataPoints
+                        
+                        For iGroup from 0 to iGroupTo
+                            If (bBar) ;
+                                Send CreateBars aDataPoints aDataPoints[iGroup]
+                            Else ;
+                                Send CreateLinePoints aDataPoints aDataPoints[iGroup]
+                        Loop
+                        
+                        If (bLegend) ;
+                            Send CreateLegend aDataPoints
+                            
+                        Send UpdateDrawing
+                    End_Procedure
+                    
+                    Procedure OnLoad
+                        Send CreateChart
+                    End_Procedure
+                End_Object
+            End_Object
+
+            Object oTabTetris is a cWebTabPage
+                Set psCaption to "Tetris"
+                Set piColumnCount to 2
+                Set piRowCount to 1
+                Set psRowHeights to "0/1fr"
+                Set psColumnWidths to "0/393"
+
+                Object oGrpControls is a cWebGroup
+                    Set psCaption to "Controls"
+                    Set piColumnCount to 4
+                    Set piRowIndex to 0
+                    Set piColumnIndex to 0
+                    Set piRowCount to 6
+                    Set psRowHeights to "1/78"
+                    
+                    Procedure UpdateButtons
+                        Boolean bRunning
+                        
+                        Get IsRunning of oTetrisGame to bRunning
+                        
+                        WebSet pbEnabled of oBtnRotateLeft to bRunning
+                        WebSet pbEnabled of oBtnRotateRight to bRunning
+                        WebSet pbEnabled of oBtnMoveLeft to bRunning
+                        WebSet pbEnabled of oBtnRight to bRunning
+                        WebSet pbEnabled of oBtnDropDown to bRunning
+                        
+                        WebSet pbEnabled of oBtnStart to (not(bRunning))
+                        WebSet pbEnabled of oBtnPause to bRunning
+                        WebSet pbEnabled of oBtnResume to (not(bRunning))
+                    End_Procedure
+
+                    Object oBtnStart is a cWebButton
+                        Set psCaption to "New game"
+                        Set piColumnIndex to 0
+                        Set piRowIndex to 1
+                        Set pbFillHeight to True
+                        Set piColumnSpan to 2
+                    
+                        Procedure OnClick
+                            Send Start of oTetrisGame
+                            Send UpdateButtons
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnPause is a cWebButton
+                        Set psCaption to "Pause"
+                        Set piColumnIndex to 2
+                        Set piRowIndex to 1
+                        Set pbFillHeight to True
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send Pause of oTetrisGame
+                            Send UpdateButtons
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnResume is a cWebButton
+                        Set psCaption to "Resume"
+                        Set piColumnIndex to 3
+                        Set piRowIndex to 1
+                        Set pbFillHeight to True
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send Resume of oTetrisGame
+                            Send UpdateButtons
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+
+                    Object oWebFormKeyCatcher is a cWebForm
+                        Set pbServerOnKey to True
+                        Set pbShowLabel to False
+                        Set piColumnIndex to 1
+                        Set piColumnSpan to 2
+                        Set psToolTip to "Left/right arrows move piece. Up/dn rotates and space drops it"
+                        Set piRowIndex to 2
+            
+                        Procedure OnKey Boolean bPrintable String sKey
+                            Case Begin
+                                Case (sKey = "ArrowLeft") 
+                                    Send MoveLeft of oTetrisGame
+                                    Case Break
+                                Case (sKey = "ArrowRight") 
+                                    Send MoveRight of oTetrisGame
+                                    Case Break
+                                Case (sKey = "ArrowUp") 
+                                    Send RotateLeft of oTetrisGame
+                                    Case Break
+                                Case (sKey = "ArrowDown") 
+                                    Send RotateRight of oTetrisGame
+                                    Case Break
+                                Case ("pP" contains sKey)
+                                    Send Pause of oTetrisGame
+                                    Case Break
+                                Case ("rR" contains sKey)
+                                    Send Resume of oTetrisGame
+                                    Case Break
+                                Case (sKey = " ")
+                                    Send DropDown of oTetrisGame
+                                    Case Break
+                            Case End
+                            WebSet psValue to ""
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnMoveLeft is a cWebButton
+                        Set psCaption to "<<"
+                        Set piRowIndex to 4
+                        Set piColumnIndex to 0
+                        Set piRowSpan to 2
+                        Set pbFillHeight to True
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send MoveLeft of oTetrisGame
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnRotateLeft is a cWebButton
+                        Set piColumnSpan to 0
+                        Set psCaption to "< Rotate"
+                        Set piRowIndex to 4
+                        Set piColumnIndex to 1
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send RotateLeft of oTetrisGame
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnRotateRight is a cWebButton
+                        Set piColumnSpan to 0
+                        Set psCaption to "Rotate >"
+                        Set piRowIndex to 4
+                        Set piColumnIndex to 2
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send RotateRight of oTetrisGame
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnDropDown is a cWebButton
+                        Set piColumnSpan to 2
+                        Set psCaption to "DropDown"
+                        Set piRowIndex to 5
+                        Set piColumnIndex to 1
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send DropDown of oTetrisGame
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+
+                    Object oBtnRight is a cWebButton
+                        Set psCaption to ">>"
+                        Set piRowIndex to 4
+                        Set piColumnIndex to 3
+                        Set pbFillHeight to True
+                        Set piRowSpan to 2
+                        Set pbEnabled to False
+                    
+                        Procedure OnClick
+                            Send MoveRight of oTetrisGame
+                            Send Focus of oWebFormKeyCatcher
+                        End_Procedure
+                    End_Object
+                End_Object
+
+                Object oTetrisGame is a cWebTetris
+                   Set pbFillHeight to True
+                   Set pbZoomable to False
+                   Set pbShowRaster to True
+                   Set piRowIndex to 0
+                   Set piColumnIndex to 1
+               End_Object
+            End_Object
+        End_Object        
+    End_Object 
+End_Object

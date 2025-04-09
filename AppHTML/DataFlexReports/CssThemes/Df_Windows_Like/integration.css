@@ -1,0 +1,41 @@
+/* ICONS */
+#OWEBAPP.Df_Windows_Like .RWRunReportButton .WebItm_Icon{
+  background: url('../../../Images/Df_Windows_Like_Icons.png') no-repeat 0 -334px transparent;
+  height: 16px;
+  width: 16px;
+}
+
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderUp button,
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderDown button {
+  min-height: 18px;
+  min-width: 18px;
+  border: 1px solid transparent;
+  box-shadow: 0 0 0 0 #FFFFFF inset;
+  padding: 0;
+  text-shadow: 0 0;
+}
+
+/* SORT & ORDER */
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderUp {
+  margin-top: 40px;
+}
+
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderDown {
+  margin-top: 10px;
+}
+
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderUp button {
+  background: url('../../../Images/Df_Windows_Like_Icons.png') no-repeat 0 -484px transparent;
+}
+
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderDown button {
+  background: url('../../../Images/Df_Windows_Like_Icons.png') no-repeat 0 -460px transparent;
+}
+
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderUp button:hover,
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderUp button:focus,
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderDown button:hover,
+#OWEBAPP.Df_Windows_Like .RWMoveSortOrderDown button:focus{
+  border: 1px solid #ADB967;
+  background-color: #C4D274;  
+}

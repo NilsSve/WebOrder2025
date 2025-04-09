@@ -1,0 +1,337 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebRadio.pkg
+Use cWebCheckbox.pkg
+Use cWebCombo.pkg
+Use cWebButton.pkg
+Use cWebLabel.pkg
+Use cWebGroup.pkg
+Use cWebIFrame.pkg
+
+Use cDRReport.pkg
+
+Use cCustomerDataDictionary.dd
+
+// This example shows the results of a customer list report build with DataFlex Reports where the output is first written to
+// a PDF file in the Cache subfolder of the Reports folder before it gets downloaded to the client (browser).
+
+// The view contains controls to select the customers to print by selecting a from and to customer number of a from and to customer
+// name. Note that entering both selection criteria might result in showing no data at all.
+
+// The user can select the sort order; customer number or customer name, ascending or descending
+
+// The output to comboform lets the user select if the PDF should be displayed embedded via an iFrame object in the page or displayed
+// in a new window, new tab or current window. Note that actual property settings for this are done when the report is opened and
+// output is produced.
+
+Object oCustomerListSample is a cWebView
+    Object oCustomer_DD is a cCustomerDataDictionary
+    End_Object
+
+    Set Main_DD to oCustomer_DD
+    Set Server to oCustomer_DD
+
+    Set psCaption to "Customer List (DataFlex Reports)"
+    Set psStateViewName to "CustomerList"
+
+    Object oReport is a cDRReport
+        Set psReportName to "CustomerList.dr"
+
+        Procedure OnInitializeReport
+            Forward Send OnInitializeReport
+
+            Send SetOutputDestination
+            Send SetFilters
+            Send SetSortFields
+        End_Procedure
+
+        // Dynamically set the output destination based on user choice.
+        // This cannot be done from the oOutputToCombo as the process that runs the report might very well
+        // not be the process that sets the option
+        Procedure SetOutputDestination
+            String sOutputOption
+
+            WebGet psValue of oOutputToCombo to sOutputOption
+            Case Begin
+                Case (sOutputOption = "V")
+                    Register_Object oReportResults
+                    Set phoReportViewer to oReportResults
+                    Case Break
+                Case (sOutputOption = "T")
+                    Set phoReportViewer to 0
+                    Set peBrowserTarget to btNewTab
+                    Case Break
+                Case (sOutputOption = "N")
+                    Set phoReportViewer to 0
+                    Set peBrowserTarget to btNewWindow
+                    Case Break
+                Case (sOutputOption = "S")
+                    Set phoReportViewer to 0
+                    Set peBrowserTarget to btCurrentWindow
+                    Case Break
+            Case End
+        End_Procedure
+
+        Procedure SetFilters
+            Integer[] iCustomerCustomerNumbers
+            String[] sCustomerNames
+            String sReportId
+
+            Get psReportId to sReportId
+            Send RemoveAllFilters sReportId  // clear any previous filters
+
+            WebGet psValue of oFromCustomerCustomerNumber to iCustomerCustomerNumbers[0]
+            WebGet psValue of oToCustomerCustomerNumber to iCustomerCustomerNumbers[1]
+
+            // Sort the customer numbers to avoid the FROM customer number is higher than the TO customer number
+            If (iCustomerCustomerNumbers[0] > iCustomerCustomerNumbers[1]) Begin
+                Move (ReverseArray (iCustomerCustomerNumbers)) to iCustomerCustomerNumbers
+            End
+            If (iCustomerCustomerNumbers[0] <> 0) Begin
+                Send AddFilter sReportId "{Customer.Customer_Number}" C_drGreaterThanOrEqual iCustomerCustomerNumbers[0]
+            End
+            If (iCustomerCustomerNumbers[1] <> 0) Begin
+                Send AddFilter sReportId "{Customer.Customer_Number}" C_drLessThanOrEqual iCustomerCustomerNumbers[1]
+            End
+
+            WebGet psValue of oFromCustomerName to sCustomerNames[0]
+            WebGet psValue of oToCustomerName to sCustomerNames[1]
+
+            Move (Trim (sCustomerNames[0])) to sCustomerNames[0]
+            Move (Trim (sCustomerNames[1])) to sCustomerNames[1]
+
+            If (sCustomerNames[0] > sCustomerNames[1]) Begin
+                // Reverse the customer names to avoid the FROM customer name is alfabetically higher than the TO customer name
+                Move (ReverseArray (sCustomerNames)) to sCustomerNames
+            End
+
+            If (sCustomerNames[0] <> "") Begin
+                Send AddFilter sReportId "{Customer.Name}" C_DRGreaterThanOrEqual sCustomerNames[0]
+            End
+            If (sCustomerNames[1] <> "") Begin
+                Send AddFilter sReportId "{Customer.Name}" C_DRLessThanOrEqual sCustomerNames[1]
+            End
+        End_Procedure
+
+        Procedure SetSortFields
+            Integer iRadio
+            Boolean bAscending
+            String sReportId
+
+            WebGet psValue of oSortNumber to iRadio
+            Get GetChecked of oSortAscending to bAscending
+
+            Get psReportId to sReportId
+            Send RemoveAllRecordSortFields sReportId
+            If (iRadio=0) Begin
+                Send AddRecordSortField sReportId "{Customer.Customer_Number}" (If(bAscending, C_drAscending, C_drDescending))
+            End
+            Else Begin
+                Send AddRecordSortField sReportId "{Customer.Name}" (If(bAscending, C_DRAscending, C_DRDescending))
+            End
+        End_Procedure
+    End_Object
+
+    Procedure RunReport
+        Send GenerateReport of oReport
+    End_Procedure
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oSelectionsGroup is a cWebGroup
+            Set piColumnCount to 12
+            Set pbShowBorder to False
+            Set pbShowCaption to False
+            Set piColumnSpan to 6
+            
+            WebSetResponsive piColumnSpan rmTablet to 8
+
+            Object oCustomerCustomerNumberGroup is a cWebGroup
+                Set piColumnSpan to 3
+                Set psCaption to "Customer Number:"
+                Set piColumnCount to 10
+                
+                WebSetResponsive piColumnSpan rmTablet to 5
+
+                Object oFromCustomerCustomerNumber is a cWebForm
+                    Set psLabel to "From:"
+                    Set piLabelOffset to 50
+                    Set piColumnSpan to 0
+                    Set peDataType to typeNumber
+                    Set piMaxLength to 10
+                    Set pbPromptButton to True
+
+                    Procedure OnPrompt
+                        Handle hoPrompt
+
+                        Get Field_WebPrompt_Object of oCustomer_DD Field Customer.Customer_Number to hoPrompt
+                        Send Popup of hoPrompt Self
+                    End_Procedure
+
+                    Procedure Prompt_Callback Handle hoPrompt
+                        Integer iColumn
+
+                        Forward Send Prompt_Callback hoPrompt
+
+                        WebSet peUpdateMode of hoPrompt to umPromptValue
+                        Get SelectBestColumn of hoPrompt File_Field Customer.Customer_Number to iColumn
+                        WebSet piUpdateColumn of hoPrompt to iColumn
+                    End_Procedure
+                End_Object
+
+                Object oToCustomerCustomerNumber is a cWebForm
+                    Set psLabel to "To:"
+                    Set piLabelOffset to 50
+                    Set piColumnSpan to 0
+                    Set peDataType to typeNumber
+                    Set piMaxLength to 10
+                    Set pbPromptButton to True
+
+                    Procedure OnPrompt
+                        Handle hoPrompt
+
+                        Get Field_WebPrompt_Object of oCustomer_DD Field Customer.Customer_Number to hoPrompt
+                        Send Popup of hoPrompt Self
+                    End_Procedure
+
+                    Procedure Prompt_Callback Handle hoPrompt
+                        Integer iColumn
+
+                        Forward Send Prompt_Callback hoPrompt
+
+                        WebSet peUpdateMode of hoPrompt to umPromptValue
+                        Get SelectBestColumn of hoPrompt File_Field Customer.Customer_Number to iColumn
+                        WebSet piUpdateColumn of hoPrompt to iColumn
+                    End_Procedure
+                End_Object
+            End_Object
+
+            Object oCustomerCustomerNameGroup is a cWebGroup
+                Set psCaption to "Customer Name:"
+                Set piColumnSpan to 9
+                Set piColumnCount to 10
+                Set piColumnIndex to 3
+                
+                WebSetResponsive piColumnIndex rmTablet to 5
+                WebSetResponsive piColumnSpan rmTablet to 7
+
+                Object oFromCustomerName is a cWebForm
+                    Set psLabel to "From:"
+                    Set piLabelOffset to 50
+                    Set piColumnSpan to 0
+                    Set piMaxLength to 30
+                    Set pbPromptButton to True
+                    Set peDataType to typeASCII
+
+                    Procedure OnPrompt
+                        Handle hoPrompt
+
+                        Get Field_WebPrompt_Object of oCustomer_DD Field Customer.Name to hoPrompt
+                        Send Popup of hoPrompt Self
+                    End_Procedure
+
+                    Procedure Prompt_Callback Handle hoPrompt
+                        Integer iColumn
+
+                        Forward Send Prompt_Callback hoPrompt
+
+                        WebSet peUpdateMode of hoPrompt to umPromptValue
+                        Get SelectBestColumn of hoPrompt File_Field Customer.Name to iColumn
+                        WebSet piUpdateColumn of hoPrompt to iColumn
+                    End_Procedure
+                End_Object
+
+                Object oToCustomerName is a cWebForm
+                    Set psLabel to "To:"
+                    Set piLabelOffset to 50
+                    Set piColumnSpan to 0
+                    Set piMaxLength to 30
+                    Set pbPromptButton to True
+                    Set peDataType to typeASCII
+
+                    Procedure OnPrompt
+                        Handle hoPrompt
+
+                        Get Field_WebPrompt_Object of oCustomer_DD Field Customer.Name to hoPrompt
+                        Send Popup of hoPrompt Self
+                    End_Procedure
+
+                    Procedure Prompt_Callback Handle hoPrompt
+                        Integer iColumn
+
+                        Forward Send Prompt_Callback hoPrompt
+
+                        WebSet peUpdateMode of hoPrompt to umPromptValue
+                        Get SelectBestColumn of hoPrompt File_Field Customer.Name to iColumn
+                        WebSet piUpdateColumn of hoPrompt to iColumn
+                    End_Procedure
+                End_Object
+            End_Object
+
+            Object oOutputToCombo is a cWebCombo
+                Set piColumnSpan to 5
+                Set psLabel to "Output to"
+                Set pbServerOnChange to True
+                
+                WebSetResponsive piColumnSpan rmTablet to 10
+
+                Procedure OnChange String sNewValue String sOldValue
+                    WebSet pbRender of oReportResults to (sNewValue = "V")
+                End_Procedure
+
+                Procedure OnFill
+                    Send AddComboItem "V" "Embedded Viewer (iFrame)"
+                    Send AddComboItem "N" "New Window"
+                    Send AddComboItem "T" "New Tab"
+                    Send AddComboItem "S" "Same Window"
+                End_Procedure
+
+                Set psValue to "V"
+            End_Object
+        End_Object
+
+        Object oSortOrderGroup is a cWebGroup
+            Set psCaption to "Order By:"
+            Set piColumnSpan to 4
+            Set piColumnIndex to 6
+
+            WebSetResponsive piColumnIndex rmTablet to 8
+
+            Object oSortNumber is a cWebRadio
+                Set psCaption to "Customer Number"
+                Set psGroupName to "Sort"
+                Set psRadioValue to "0"
+            End_Object
+
+            Object oSortName is a cWebRadio
+                Set psCaption to "Customer Name"
+                Set psGroupName to "Sort"
+                Set psRadioValue to "1"
+            End_Object
+
+            Object oSortAscending is a cWebCheckbox
+                Set psCaption to "Ascending"
+                Set psChecked to 1
+                Set psUnChecked to 0
+                Set psValue to 1
+            End_Object
+        End_Object
+
+        Object oRunButton is a cWebButton
+            Set psCaption to "Run Report"
+            Set piColumnSpan to 3
+
+            Procedure OnClick
+                Send RunReport
+            End_Procedure
+        End_Object
+
+        Object oReportResults is a cWebIFrame
+            Set pbFillHeight to True
+            Set pbShowBorder to True
+            Set phoReportViewer of oReport to Self
+        End_Object
+    End_Object
+End_Object

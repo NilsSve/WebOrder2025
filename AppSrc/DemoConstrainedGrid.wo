@@ -1,0 +1,246 @@
+﻿Use cWebView.pkg
+Use cWebForm.pkg
+Use cWebCombo.pkg
+Use cWebButton.pkg
+Use cWebGrid.pkg
+Use cWebColumn.pkg
+Use cWebColumnCombo.pkg
+Use cWebColumnCheckbox.pkg
+Use cWebPanel.pkg
+
+Use cCustomerDataDictionary.dd
+
+Object oDemoConstrainedGrid is a cWebView
+    Object oCustomerDataDictionary is a cCustomerDataDictionary
+        Set Auto_Fill_State to True
+        
+        Procedure Field_defaults
+            Forward Send Field_Defaults
+            Set Field_Changed_Value   Field Customer.State to ""
+            Set Field_Changed_Value   Field Customer.Credit_Limit to 0
+            Set Field_Changed_Value   Field Customer.Status to "N"
+        End_Procedure        
+        
+        Procedure OnConstrain
+            String sFilter sFrom sTo
+            Forward Send OnConstrain
+            
+            WebGet psFilter of oDemoConstrainedGrid to sFilter
+            WebGet psFilterFrom of oDemoConstrainedGrid to sFrom
+            WebGet psFilterTo of oDemoConstrainedGrid to sTo
+            
+            If (sFilter = "NUMBER") Begin
+                Constrain Customer.Customer_Number Between sFrom and sTo
+            End
+            
+            If (sFilter = "NAME") Begin
+                Constrain Customer.Name Between sFrom and sTo
+            End
+            
+        End_Procedure
+    End_Object
+    
+    Set Main_DD to oCustomerDataDictionary
+    Set Server to oCustomerDataDictionary
+    
+    Set psCaption to "Constrained Grid"
+    
+    //  Web properties used to store constraint values. The OnConstrain should't read these directly
+    //  from the UI as those values can change between requests causing the synchronization of 
+    //  the DD's fail.
+    { WebProperty=Server }
+    Property String psFilter ""
+    { WebProperty=Server }
+    Property String psFilterFrom ""
+    { WebProperty=Server }
+    Property String psFilterTo ""
+    
+    Set piMaxWidth to 1200
+    
+    //  Fill the grid on load
+    Procedure OnLoad
+        Send Find of oCustomerDataDictionary FIRST_RECORD Index.1
+    End_Procedure
+    
+    Object oTopPanel is a cWebPanel
+        Set peRegion to prTop
+        Set piColumnCount to 4
+        
+        Object oFilterCombo is a cWebCombo
+            Set psLabel to "Filter on:"
+            Set pbServerOnChange to True
+            
+            Procedure OnFill
+                Forward Send OnFill
+                
+                Send AddComboItem "" "None"
+                Send AddComboItem "NUMBER" "Number"
+                Send AddComboItem "NAME" "Name"
+            End_Procedure
+            
+            Procedure OnChange String sNewValue String sOldValue
+                Boolean bFilterSelected
+                
+                Move (sNewValue <> "") to bFilterSelected
+                WebSet pbEnabled of oFromForm to bFilterSelected
+                WebSet pbEnabled of oToForm to bFilterSelected
+                WebSet pbEnabled of oUpdateBtn to bFilterSelected
+                
+                // clear previously set filter
+                If (sOldValue <> sNewValue) Begin
+                   WebSet psValue of oFromForm to ""
+                   WebSet psValue of oToForm to "" 
+                   
+                   Send UpdateFilter
+                End
+                
+                Forward Send OnChange sNewValue sOldValue
+
+            End_Procedure
+            
+        End_Object
+        
+        Object oFromForm is a cWebForm
+            Set piColumnIndex to 1
+            Set psLabel to "From:"
+            Set pbEnabled to False
+        End_Object
+        
+        Object oToForm is a cWebForm
+            Set piColumnIndex to 2
+            Set psLabel to "To:"
+            Set pbEnabled to False
+        End_Object
+        
+        Object oUpdateBtn is a cWebButton
+            Set psCaption to "Update"
+            Set piColumnIndex to 3
+            Set pbEnabled to False
+            
+            Procedure OnClick
+                //  Update the filter
+                Send UpdateFilter
+                //  Update the state hash (URL)
+                Send UpdateStateHash False
+            End_Procedure
+        End_Object
+    End_Object
+    
+    Object oMainPanel is a cWebPanel
+        Set peRegion to prCenter
+        
+        Object oList is a cWebGrid
+            Set pbFillHeight to True
+            Set pbShowLabel to False
+            Set piOrdering to 1
+            Set pbAutoColumnSizing to False
+            Set pbColumnSortable to True
+            
+            Object oCustomerNumber is a cWebColumn
+                Set piWidth to 160
+                Set psCaption to "Number"
+                Set pbPromptButton to False
+                
+                Entry_Item Customer.Customer_Number
+            End_Object
+            
+            Object oCustomerName is a cWebColumn
+                Set piWidth to 405
+                Set psCaption to "Name"
+                Set pbPromptButton to False
+                
+                Entry_Item Customer.Name
+            End_Object
+            
+            Object oCustomerAddress is a cWebColumn
+                Set piWidth to 326
+                Set psCaption to "Address"
+                
+                Entry_Item Customer.Address
+            End_Object
+            
+            Object oCustomerState is a cWebColumnCombo
+                Set piWidth to 243
+                Set psCaption to "State"
+                
+                Entry_Item Customer.State
+            End_Object
+            
+            Object oCalculated is a cWebColumn
+                Set piWidth to 96
+                Set psCaption to "Calc"
+                Set pbEnabled to False
+                
+                //  The OnSetCalculatedValue procedure can be used on any data entry object (DEO)
+                Procedure OnSetCalculatedValue String ByRef sValue
+                    Move ("$" + String(Customer.Credit_Limit)) to sValue
+                End_Procedure
+            End_Object
+            
+            Object oCustomerStatus is a cWebColumnCheckbox
+                Set piWidth to 80
+                Set psCaption to "Status"
+                
+                Entry_Item Customer.Status
+            End_Object
+        End_Object
+    End_Object
+    
+    //  Updates the filter by reading the values from the controls into the web properties used by 
+    //  the OnConstrain. Then contraints are rebuilt and the list is refreshed.
+    Procedure UpdateFilter
+        String sVal
+                
+        WebGet psValue of oFilterCombo to sVal
+        WebSet psFilter of oDemoConstrainedGrid to sVal
+        
+        WebGet psValue of oFromForm to sVal
+        WebSet psFilterFrom of oDemoConstrainedGrid to sVal
+        
+        WebGet psValue of oToForm to sVal
+        WebSet psFilterTo of oDemoConstrainedGrid to sVal
+        
+        Send Rebuild_Constraints of oCustomerDataDictionary
+        
+        // make sure buffer has correct (old) record
+        // and rebuild list around valid record close to this one
+        Send Refind_Records of oCustomerDataDictionary
+        Send FindDDRecordInBuffer of oList
+    End_Procedure
+    
+    //  This event is called when a URL is generated (triggered by for example UpdateStateHash), it
+    //  allows us to insert custom data into the state hash. In this example we insert the filter
+    //  details.
+    Procedure OnDefineCustomStateHash String  ByRef sStateHash
+        String sFilter sFrom sTo
+        
+        WebGet psFilter to sFilter
+        If (Trim(sFilter) <> "") Begin
+            WebGet psFilterFrom to sFrom
+            WebGet psFilterTo to sTo
+            
+            Move (sFilter + "_" + Replaces("_", sFrom, "~5F~") + "_" +  Replaces("_", sTo, "~5F~")) to sStateHash
+        End
+    End_Procedure
+    
+    //  This event is called when a view is shown, before it is rendered. We implement it here to
+    //  read the filter values from the custom state hash that might be available.
+    Procedure OnBeforeShow
+        String sHash
+        String[] aParts
+        
+        Get CustomStateHash to sHash
+        Get StrSplitToArray sHash "_" to aParts
+        
+        If (SizeOfArray(aParts) >= 3) Begin
+            WebSet psValue of oFilterCombo to aParts[0]
+            WebSet psValue of oFromForm to (Replaces("~5F~", aParts[1], "_"))
+            WebSet psValue of oToForm to (Replaces("~5F~", aParts[2], "_"))
+            
+            Send UpdateFilter
+        End
+    End_Procedure
+End_Object
+
+
+

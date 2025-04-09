@@ -1,0 +1,439 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebGroup.pkg
+Use cWebMenuGroup.pkg
+Use cWebMenuItem.pkg
+Use cWebFloatingPanel.pkg
+Use cWebButton.pkg
+Use cWebHtmlBox.pkg
+Use cWebSuggestionForm.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+Use cWebAccordionContainer.pkg
+Use cWebCard.pkg
+Use cWebAccordionCard.pkg
+Use cWebMenuList.pkg
+Use cWebCheckBox.pkg
+Use cWebLabel.pkg
+
+Object oDemoFloatingPanel is a cWebView
+    Set psCaption to "Floating Panel"
+    Set piMaxWidth to 1024
+    Set piColumnCount to 12
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oWebButton2 is a cWebButton
+            Set piColumnSpan to 3
+            Set psCaption to "FloatByButton"
+            
+            Procedure OnClick
+                Send Show of oWebFloatingPanel1
+            End_Procedure
+        End_Object
+        
+        Object oWebFloatingPanel1 is a cWebFloatingPanel
+            Set phoFloatByControl to oWebButton2
+            Set psCSSClass to "Shadow"
+            Set piWidth to 300
+            
+            Object oWebHtmlBox1 is a cWebHtmlBox
+                Set piColumnSpan to 0
+                Set psHtml to "<h1>Floating panel</h1><h2>Float By Control</h2><p>In this mode the floating panel positions itself based on the position of another control. The automatic logic will try to center it below the control if that fits within the screen limits.</p><h2>Shadow</h2><p>Adding this CSS class makes it show a border with shadow around the panel.</p>"
+            End_Object
+            
+            Object oWebButton1 is a cWebButton
+                Set piColumnSpan to 0
+                Set psCaption to "hide"
+                
+                Procedure OnClick
+                    Send Hide
+                End_Procedure
+            End_Object
+        End_Object
+        
+        Object oWebLabel1 is a cWebLabel
+            Set psCaption to "Displays a plain floating panel with a shadow style by the button control."
+            Set piColumnIndex to 3
+            Set piColumnSpan to 9
+        End_Object
+        
+        Object oWebButton3 is a cWebButton
+            Set piColumnSpan to 3
+            Set psCaption to "FloatByButton 2"
+            
+            Procedure OnClick
+                Boolean bVisible
+                
+                WebGet pbVisible of oWebFloatingPanel2 to bVisible
+                
+                If (bVisible) Begin
+                    Send Hide of oWebFloatingPanel2
+                End
+                Else Begin
+                    Send Show of oWebFloatingPanel2
+                End
+            End_Procedure
+        End_Object
+        
+        Object oWebFloatingPanel2 is a cWebFloatingPanel
+            Set phoFloatByControl to oWebButton3
+            Set psCSSClass to "Shadow WithArrow"
+            Set piWidth to 400
+            Set pbHideOnBlur to True
+            
+            Object oWebHtmlBox1 is a cWebHtmlBox
+                Set piColumnSpan to 0
+                Set psHtml to "<h1>Floating panel</h1><h2>Float By Control</h2><p>In this mode the floating panel positions itself based on the position of another control. The autmatic logic will try to center it below the control if that fits within the screen limits.</p><h2>Shadow</h2><p>Adding this CSS class makes it show a border with shadow around the panel.</p><h2>WithArrow</h2><p>Adding this CSS class adds an arrow that points towards the control it is positioning itself by.</p>"
+            End_Object
+        End_Object
+        Object oWebLabel2 is a cWebLabel
+            Set psCaption to "Displays a floating panel by the button control with an arrow. "
+            Set piColumnIndex to 3
+            Set piColumnSpan to 9
+        End_Object
+        
+        Object oWebButton4 is a cWebButton
+            Set piColumnSpan to 3
+            Set psCaption to "Menu Demo"
+            
+            Procedure OnClick
+                Send Show of oWebFloatingPanel3
+            End_Procedure
+        End_Object
+        
+        Object oWebLabel3 is a cWebLabel
+            Set psCaption to "Displays a floating panel positioned on the left on the screen squeezing the webapp. The List Menu is used to display a menu. "
+            Set piColumnIndex to 3
+            Set piColumnSpan to 9
+        End_Object
+        
+        Object oWebCheckbox1 is a cWebCheckbox
+            Set piColumnSpan to 3
+            Set psCaption to "Squeeze"
+            Set psValue to 1
+            Set psUnchecked to 0
+            Set psChecked to 1
+            
+            Set pbServerOnChange to True
+            Procedure OnChange String sNewValue String sOldValue
+                Boolean bChecked
+                
+                Get GetChecked to bChecked
+                
+                If (bChecked) Begin
+                    WebSet pePosition of oWebFloatingPanel3 to fpFloatLeftSqueezeWebApp
+                End
+                Else Begin
+                    WebSet pePosition of oWebFloatingPanel3 to fpFloatLeftPushWebApp
+                End
+            End_Procedure
+        End_Object
+        
+        Object oWebFloatingPanel3 is a cWebFloatingPanel
+            Set pePosition to fpFloatLeftSqueezeWebApp
+            Set piWidth to 300
+            Set psCSSClass to "Shadow Dark"
+            Set piColumnCount to 12
+            Set piContentWidth to 300
+            
+            Object oWebButton5 is a cWebButton
+                Set piColumnSpan to 0
+                Set piColumnIndex to 10
+                Set psCaption to "X"
+                Set psCSSClass to "Transparent"
+                
+                Procedure OnClick
+                    Send Hide
+                End_Procedure
+            End_Object
+            
+            Object oWebMenuList1 is a cWebMenuList
+                Set pbFillHeight to True
+                Set piColumnSpan to 0
+                Set psCSSClass to "Dark"
+                
+                
+                Object oDashboard_itm is a cWebMenuItem
+                    Set psCaption to "Dashboard"
+                    
+//                    Procedure OnClick
+//                        Send NavigateBegin to oDashboard Self False
+//                    End_Procedure
+                End_Object
+                
+                Object oCustomer_itm is a cWebMenuItem
+                    Set psCaption to "Customer Query"
+                    
+//                    Procedure OnClick
+//                        Send NavigateBegin of oSelectCustomer Self False
+//                    End_Procedure
+                End_Object
+                
+                Object oSalesPerson_itm is a cWebMenuItem
+                    Set psCaption to "Sales Person Query"
+                    
+//                    Procedure OnClick
+//                        Send NavigateBegin of oSelectSalesPerson Self False
+//                    End_Procedure
+                End_Object
+                
+                Object oOrder_itm is a cWebMenuItem
+                    Set psCaption to "Orders Query"
+                    
+//                    Procedure OnClick
+//                        Send NavigateBegin of oSelectOrder Self False
+//                    End_Procedure
+                End_Object
+                
+                Object oDemo_itm is a cWebMenuItem
+                    Set psCaption to "Demo Techniques"
+                    
+                    Object oDialogs_itm is a cWebMenuItem
+                        Set psCaption to "Modal Dialogs"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oDemoDialogs Self False
+//                        End_Procedure
+                        
+                    End_Object
+                    
+                    Object oCSSClasses_itm is a cWebMenuItem
+                        Set psCaption to "Extended CSS Classes"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oDemoCSSClasses Self False
+//                        End_Procedure
+                        
+                    End_Object
+                    
+                    Object oSlider_Itm is a cWebMenuItem
+                        Set psCaption to "Sliders and Tab Dialogs"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oDemoSliders Self False
+//                        End_Procedure
+                        
+                    End_Object
+                    
+                    Object oDemoCustomFwdNavigations_itm is a cWebMenuItem
+                        Set psCaption to "Custom Forward Navigations"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oDemoCustomFwdNavigations Self False
+//                        End_Procedure
+//
+//                        Procedure OnGetNavigateForwardData tWebNavigateData ByRef NavigateData Handle hoToView
+//                            Move True to NavigateData.bNewRecord
+//                        End_Procedure
+                    End_Object
+                    
+                End_Object
+                
+                Object oMaintenance_itm is a cWebMenuItem
+                    Set psCaption to "Maintenance"
+                    
+                    Object oSalesPersons_itm is a cWebMenuItem
+                        Set psCaption to "Sales Persons"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oSelectSalesPerson Self False
+//                        End_Procedure
+//
+//                        Procedure OnGetNavigateForwardData tWebNavigateData ByRef NavigateData Handle hoToView
+//                            Get NamedValueAdd NavigateData.NamedValues "task" "maint" to NavigateData.NamedValues
+//                        End_Procedure
+                    End_Object
+                    
+                    Object oCustomer_itm is a cWebMenuItem
+                        Set psCaption to "Customers"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oSelectCustomer Self False
+//                        End_Procedure
+//
+//                        Procedure OnGetNavigateForwardData tWebNavigateData ByRef NavigateData Handle hoToView
+//                            Get NamedValueAdd NavigateData.NamedValues "task" "maint" to NavigateData.NamedValues
+//                        End_Procedure
+                    End_Object
+                    
+                    Object oVendor_itm is a cWebMenuItem
+                        Set psCaption to "Vendors"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oSelectVendor Self False
+//                        End_Procedure
+//
+//                        Procedure OnGetNavigateForwardData tWebNavigateData ByRef NavigateData Handle hoToView
+//                            Get NamedValueAdd NavigateData.NamedValues "task" "maint" to NavigateData.NamedValues
+//                        End_Procedure
+                    End_Object
+                    
+                    Object oInventory_itm is a cWebMenuItem
+                        Set psCaption to "Products"
+                        
+//                        Procedure OnClick
+//                            Send NavigateBegin of oSelectInventory Self False
+//                        End_Procedure
+//
+//                        Procedure OnGetNavigateForwardData tWebNavigateData ByRef NavigateData Handle hoToView
+//                            Get NamedValueAdd NavigateData.NamedValues "task" "maint" to NavigateData.NamedValues
+//                        End_Procedure
+                    End_Object
+                End_Object
+                
+                Object oSignOut_itm is a cWebMenuItem
+                    Set psCaption to "Sign Out"
+                    
+                    Procedure OnClick
+                        Send RequestLogOut of ghoWebSessionManager
+                    End_Procedure
+                End_Object
+            End_Object
+            
+        End_Object
+        
+        Object oWebLabel4 is a cWebLabel
+            Set psCaption to "Switches the menu demo panel form squeezing the webapp to pushing the webapp."
+            Set piColumnIndex to 3
+            Set piColumnSpan to 9
+        End_Object
+        
+        WebSetResponsive piColumnCount rmMobile to 6
+        
+        
+        
+    End_Object
+    
+    // add action menu items here
+    // we've included some common buttons
+    
+    Object oActionGroup is a cWebMenuGroup
+        Set psGroupName to "MainActions"
+        
+        Object oSaveBtn is a cWebMenuItem
+            Set psCaption to C_$Save
+            Set psCSSClass to "WebSaveMenuItem"
+            
+            Procedure OnClick
+                Send Request_Save
+            End_Procedure
+        End_Object
+        
+        Object oEditBtn is a cWebMenuItem
+            Set psCaption to C_$CategoryEdit
+            Set psCSSClass to "WebEditMenuItem"
+            Procedure OnClick
+                Send ChangeEditMode True
+                Send SetActionButtons
+            End_Procedure
+        End_Object
+        
+        Object oDeleteBtn is a cWebMenuItem
+            Set psCaption to C_$Delete
+            Set psCSSClass to "WebDeleteMenuItem"
+            Set peActionDisplay to adMenu
+            
+            Procedure OnClick
+                Send Request_Delete
+            End_Procedure
+        End_Object
+        
+        Object oCancelChangesBtn is a cWebMenuItem
+            
+            Set psCaption to C_$ToolTipClear
+            Set peActionDisplay to adMenu
+            
+            Procedure OnClick
+                // this will undo any unchanged saves and show the latest
+                Send RefreshRecord
+            End_Procedure
+        End_Object
+        
+    End_Object
+    
+    // This can be used to show and hide buttons based on context. This can be called
+    // any time the view is active.
+    Procedure SetActionButtons
+        tWebNavigateData NavigateData
+        Boolean bHasRecord
+        Handle hoDD
+        
+        Get Server to hoDD
+        Get GetNavigateData to NavigateData
+        
+        If (hoDD) Begin
+            Get HasRecord of hoDD to bHasRecord
+        End
+        Else Begin
+            Move False to bHasRecord
+        End
+        
+        // let's hide all buttons and then show the ones we want
+        WebSet pbRender of oEditBtn to False
+        WebSet pbRender of oSaveBtn to False
+        WebSet pbRender of oCancelChangesBtn to False
+        WebSet pbRender of oDeleteBtn to False
+        
+        If (NavigateData.bReadOnly) Begin
+            WebSet pbRender of oEditBtn to True
+        End
+        Else Begin
+            WebSet pbRender of oSaveBtn to True
+            WebSet pbRender of oCancelChangesBtn to True
+            WebSet pbRender of oDeleteBtn to bHasRecord
+        End
+    End_Procedure
+    
+    // this will close the view after a save
+    Procedure OnViewSaved Handle hoServer Boolean bChanged
+        Send NavigateClose Self
+    End_Procedure
+    
+    // this will close the view after a delete
+    Procedure OnViewDeleted Handle hoDDO
+        Send NavigateClose Self
+    End_Procedure
+    
+    // Add code to customize your Zoon View based on how it was invoked.
+    // Use NavigateData to determine the context this view will be used in.
+    
+    Procedure OnNavigateForward tWebNavigateData NavigateData Integer hoInvokingView Integer hoInvokingObject
+        
+        // if this view is being used in multiple contexts you may need a block of code
+        // like this to handle customizations. This would include hiding rows and buttons
+        // (WebSet pbRender) and changing the values of various captions.
+        
+        Case Begin
+            Case (NavigateData.eNavigateType=nfFromMain)
+                // If from main, this is a propbably a main file Select to Zoom.
+                // This is the most typical way to navigate to a zoom.
+                Case Break
+            
+            Case (NavigateData.eNavigateType=nfFromParent)
+                // If from parent, this is a constrained drill down.
+                // If needed you could check NaviateData.iTable to determine the constraining parent.
+                // This would be unusual - normally you drill down from a parent to a list (Select view).
+                Case Break
+            
+            Case (NavigateData.eNavigateType=nfFromChild)
+                // If from child, this is a probably a parent Zoom from a Zoom.
+                // This is unusual but it might be used for adding a new child record.
+                Case Break
+            
+            Case Else // must be nfUndefined
+                // This may be the start of a query or this may be used for some kind of
+                // custom operation. You may want to check NavigateData.NamedValues.
+                
+        Case End
+        
+        // Action buttons can be changed dynamically during a Zoom's display lifetime. It is
+        // best to set these buttons in their own procedure so you can change later.
+        Send SetActionButtons
+        
+    End_Procedure
+    
+End_Object
+

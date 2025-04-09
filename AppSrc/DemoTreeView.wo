@@ -1,0 +1,214 @@
+﻿Use cWebView.pkg
+Use cWebForm.pkg
+Use cWebLabel.pkg
+Use cWebTreeView.pkg
+
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+
+Use cWebSpacer.pkg
+Use cWebHorizontalLine.pkg
+
+Object oDemoTreeView is a cWebView
+    Set psCaption to "TreeView + OnSyncView"
+    Set piColumnCount to 3
+    Set pbClearAfterSave to False
+    
+    Object oVendorDataDictionary is a cVendorDataDictionary
+    End_Object
+    
+    Object oInventoryDataDictionary is a cInventoryDataDictionary
+        Set DDO_Server to oVendorDataDictionary
+        
+        Procedure Creating
+            Forward Send Creating
+            
+            tWebTreeItem tNode
+            
+            //  Add tree item for the item
+            Move (Trim(Inventory.Item_ID))               to tNode.sName
+            Move (Trim(Inventory.Description))           to tNode.sAltText
+            Move (Trim(Inventory.Item_ID))               to tNode.sId
+            Move (Trim(Vendor.ID))                  to tNode.sParentId
+            Move False                              to tNode.bLoadChildren
+            Move False                              to tNode.bFolder
+            
+            Send InsertNode of oItemsTree tNode
+        End_Procedure
+        
+        Procedure Deleting
+            String sId
+            
+            Move (Trim(Inventory.Item_ID)) to sId
+            
+            Forward Send Deleting
+            
+            //  Remove node from tree
+            Send RemoveNode of oItemsTree sId
+        End_Procedure
+        
+        Procedure Update
+            Forward Send Update
+            
+            tWebTreeItem tNode
+            
+            //  Update item in tree
+            Move (Trim(Inventory.Item_ID))               to tNode.sName
+            Move (Trim(Inventory.Description))           to tNode.sAltText
+            Move (Trim(Inventory.Item_ID))               to tNode.sId
+            Move (Trim(Vendor.ID))                  to tNode.sParentId
+            Move False                              to tNode.bLoadChildren
+            Move False                              to tNode.bFolder
+            
+            Send UpdateNode of oItemsTree tNode
+        End_Procedure
+    End_Object
+    
+    Set Main_DD to oInventoryDataDictionary
+    Set Server  to oInventoryDataDictionary
+    
+    Object oLeftPanel is a cWebPanel
+        Set peRegion to prLeft
+        Set piWidth to 400
+        Set piMinWidth to 100
+        Set pbResizable to True
+        
+        Object oItemsTree is a cWebTreeView
+            Set pbServerOnSelect to True
+            Set psLabel to "Tree"
+            
+            Procedure OnSelect String sId String sValue Integer iLevel
+                If (iLevel = 1) Begin
+                    Send Clear of oInventoryDataDictionary
+                    Move sId to Vendor.ID
+                    Send Find of oVendorDataDictionary EQ Index.1
+                End
+                
+                If (iLevel = 2) Begin
+                    Move sId to Inventory.Item_ID
+                    Send Find of oInventoryDataDictionary EQ Index.1
+                End
+            End_Procedure
+            
+            
+            Function OnLoadChildNodes String sId String sValue Integer iLevel returns tWebTreeItem[]
+                tWebTreeItem[] aItems
+                tWebTreeItem tItem
+                Integer iCount
+                
+                Move 0 to iCount
+                
+                If (iLevel = 0) Begin   //  At the first level we will show the vendors
+                    //  Loop through vendors (use Request_Read so we don't change the current record of the DDO)
+                    Send Request_Read of oVendorDataDictionary FIRST_RECORD Vendor.File_Number Index.1
+                    While (Found)
+                        
+                        //  Add tree item for the vendor
+                        Move (Trim(Vendor.Name))                to aItems[iCount].sName
+                        Move (Trim(Vendor.ID))                  to aItems[iCount].sId
+                        Move True                               to aItems[iCount].bLoadChildren
+                        Move True                               to aItems[iCount].bFolder
+//                        Move (SerializeRowID(GetRowID(Vendor))) to aItems[iCount].sValue
+                        
+                        Increment iCount
+                        Send Locate_Next to oVendorDataDictionary
+                    Loop
+                End
+                
+                If (iLevel = 1) Begin
+                    
+                    Clear Inventory
+                    
+                    Move sId to Inventory.Vendor_ID
+                    Find GT Inventory by Index.2
+                    
+                    
+                    
+                    While (Found and Trim(Inventory.Vendor_ID) = sId)
+                        
+                        //  Add tree item for the item
+                        Move (Trim(Inventory.Item_ID))               to aItems[iCount].sName
+                        Move (Trim(Inventory.Description))           to aItems[iCount].sAltText
+                        Move (Trim(Inventory.Item_ID))               to aItems[iCount].sId
+                        Move False                              to aItems[iCount].bLoadChildren
+                        Move False                              to aItems[iCount].bFolder
+                        
+                        Increment iCount
+                        Find GT Inventory by Index.2
+                    Loop
+                    
+                End
+                
+                Function_Return aItems
+            End_Function
+        End_Object
+    End_Object
+    
+    Object oCenterPanel is a cWebPanel
+        Set peRegion to prCenter
+        Set piColumnCount to 2
+        Set piMinWidth to 400
+        
+        Object oItem_ID is a cWebForm
+            Set psLabel to "Inventory. Item ID"
+            Entry_Item Inventory.Item_ID
+            
+        End_Object
+        
+        Object oDescription is a cWebForm
+            Set psLabel to "Inventory. Description"
+            Set piColumnSpan to 2
+            Entry_Item Inventory.Description
+            
+            Set psValue to "Hi there!"
+        End_Object
+        
+        Object oDevider1 is a cWebHorizontalLine
+        End_Object
+        
+        
+        Object oVendorID is a cWebForm
+            Set psLabel to "Vendor ID"
+            Entry_Item Vendor.ID
+        End_Object
+        
+        Object oVendorName is a cWebForm
+            Set psLabel to "Vendor Name"
+            Set piColumnSpan to 2
+            Entry_Item Vendor.Name
+        End_Object
+        
+        Object oInventoryVendor_Part_ID is a cWebForm
+            Set psLabel to "Vendor Part ID"
+            Entry_Item Inventory.Vendor_Part_ID
+        End_Object
+        
+        Object oDevider2 is a cWebHorizontalLine
+        End_Object
+        
+        Object oInventoryUnit_Price is a cWebForm
+            Set psLabel to "Unit Price"
+            Entry_Item Inventory.Unit_Price
+        End_Object
+        
+        Object oInventoryOn_Hand is a cWebForm
+            Set psLabel to "On Hand"
+            Set piColumnIndex to 1
+            Entry_Item Inventory.On_Hand
+        End_Object
+    End_Object
+    
+    //
+    //  Only administrators should be able to save in this view.
+    //
+    Procedure OnSyncView
+        Integer iUserRights
+        Get piUserRights of ghoWebSessionManager to iUserRights
+        
+        Set Read_Only_State of oVendorDataDictionary to (iUserRights <= 0)
+        Set Read_Only_State of oInventoryDataDictionary to (iUserRights <= 0)
+    End_Procedure
+End_Object
+
+
+

@@ -1,0 +1,69 @@
+/* ICONS */
+#OWEBAPP.Df_Web_Creme .RWRunReportButton .WebItm_Icon:before{
+  content: "g";
+  font-size: 22px;
+  padding: 1px 0px 0px 2px;
+}
+
+/* SORT & ORDER */
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderUp {
+  margin-top: 40px;
+}
+
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderDown {
+  margin-top: 10px;
+}
+
+#OWEBAPP.Df_Web_Creme .WebControl.WebButton.Web_Enabled.RWMoveSortOrderUp button,
+#OWEBAPP.Df_Web_Creme .WebControl.WebButton.Web_Enabled.RWMoveSortOrderDown button {
+  width: 30px;
+  height: 30px;
+  padding: 3px 0px 4px;
+  border-radius: 3px;
+  color: #4b99ee;
+  border: 1px solid #4b99ee;
+  background: none;
+}
+
+#OWEBAPP.Df_Web_Creme .WebControl.WebButton.Web_Enabled.RWMoveSortOrderUp button:hover,
+#OWEBAPP.Df_Web_Creme .WebControl.WebButton.Web_Enabled.RWMoveSortOrderUp button:focus,
+#OWEBAPP.Df_Web_Creme .WebControl.WebButton.Web_Enabled.RWMoveSortOrderDown button:hover,
+#OWEBAPP.Df_Web_Creme .WebControl.WebButton.Web_Enabled.RWMoveSortOrderDown button:focus{
+  color: #000;
+  border: 1px solid #ADB967;
+  background-color: #C4D274;  
+}
+
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderDown button:before,
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderUp button:before {
+  font-size: 16px;
+  border: 1px solid transparent;
+  box-shadow: 0 0 0 0 #FFFFFF inset;
+  padding: 0;
+  text-shadow: 0 0;
+  padding-top: 1px;
+}
+
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderUp button:before {
+  content: "e";
+}
+
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderDown button:before {
+  content: "f";
+}
+
+/* FONT LOADING */
+#OWEBAPP.Df_Web_Creme .RWRunReportButton .WebItm_Icon:before,
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderUp button:before,
+#OWEBAPP.Df_Web_Creme .RWMoveSortOrderDown button:before{
+  font-family: "dataflex-reports" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display:inline-block;
+}

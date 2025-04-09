@@ -1,0 +1,455 @@
+﻿// Structures used by the services
+
+// Customer Information
+// This structure matches the structure of the Customer table
+struct tCustomerInfo
+    integer iCustNumber
+    string  sName
+    string  sCustAddress
+    string  sCity
+    string  sState
+    string  sZip
+    string  sPhoneNumber
+    string  sFaxNumber
+    string  sEmailAddress
+    real    rCreditLimit
+    real    rPurchases
+    real    rBalance
+    string  sComments
+    string  sStatus
+end_struct
+
+// These next two structures do not match the structure of the Customer table exactly
+// It is an example of structures that could have been determined by some other source (e.g. an industry group)
+
+// Customer Address
+struct tCustAddress
+    string  sCustAddress
+    string  sCity
+    string  sState
+    string  sZip
+end_struct
+
+// New Customer
+struct tNewCustomer
+    string          sFirstName
+    string          sMiddleName
+    string          sLastName
+    tCustAddress    Address
+    string          sPhoneNumber
+    string          sFaxNumber
+    string          sEmailAddress
+end_struct
+
+// Order Detail
+struct tOrderDet
+    string  sItemID
+    integer iQty
+    real    rUnitPrice
+    real    rPrice
+end_struct
+
+// Order
+struct tOrder
+    integer     iOrderNumber
+    integer     iCustNumber
+    date        dOrdDate
+    string      sTerms
+    string      sShipVia
+    string      sOrderedBy
+    string      sSalesPerson
+    real        rOrderTotal
+    tOrderDet[] ArrayOfDetails
+end_struct
+
+// Order Summary
+struct tOrderSummary
+    integer iOrderNumber
+    date    dOrderDate
+    real    rOrderTotal
+end_struct
+
+Use cWebService.pkg
+Use DataDict.pkg
+
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+Use cCustomerDataDictionary.dd
+Use cSalesPersonDataDictionary.dd
+Use cOrderHeaderDataDictionary.dd
+Use cOrderDetailDataDictionary.dd
+
+Object oCustOrderWebService is a cWebService
+    
+    // psDocumentation provides high level documentation of your web service. Clients using
+    // this service will see and use this documentation.
+    set psDocumentation to ;
+        ("This DataFlex Web Service provides information on Customers " +;
+        "and their orders. You can also use this service to update Customer information, " +;
+        "create new Customers and retrieve a list of Customers.")
+    
+    Set psServiceName to "CustomerAndOrderInfo"
+    Set psServiceURI to "http://tempuri.org/"
+    Set psServiceTitle to "Customer and Order Information Service"
+    
+    Object oVendorDataDictionary is a cVendorDataDictionary
+        Send DefineAllExtendedFields
+    End_Object
+    
+    Object oInventoryDataDictionary is a cInventoryDataDictionary
+        Set DDO_Server to oVendorDataDictionary
+        Send DefineAllExtendedFields
+    End_Object
+    
+    Object oCustomerDataDictionary is a cCustomerDataDictionary
+        Send DefineAllExtendedFields
+    End_Object
+    
+    Object oSalesPersonDataDictionary is a cSalesPersonDataDictionary
+        Send DefineAllExtendedFields
+    End_Object
+    
+    Object oOrderHeaderDataDictionary is a cOrderHeaderDataDictionary
+        Set DDO_Server to oCustomerDataDictionary
+        Set DDO_Server to oSalesPersonDataDictionary
+        Set Constrain_File to Customer.File_Number
+        Send DefineAllExtendedFields
+    End_Object
+    
+    Object oOrderDetailDataDictionary is a cOrderDetailDataDictionary
+        Set DDO_Server to oOrderHeaderDataDictionary
+        Set DDO_Server to oInventoryDataDictionary
+        Set Constrain_File to OrderHeader.File_Number
+        Send DefineAllExtendedFields
+    End_Object
+    
+    Set Main_DD to oCustomerDataDictionary
+    
+    // Function GetOrdersForCustomer:
+    // Searches the OrderHeader table for specified customer number and returns order numbers
+    //
+    // This demonstrates how to build and return data in an array based on a fundamental data type (array of integers)
+    //
+    // iCustNum - Customer number
+    // iArrayOfOrderNumbers - Array containing Order numbers for iCustNum
+    { Published = True  }
+    { Description = "Searches for order number in the OrderHeader file for specified customer number and returns order numbers."  }
+    Function GetOrdersForCustomer integer iCustNum returns Integer[]
+        Integer[] iArrayOfOrderNumbers
+        Handle hoCustomerDD hoOrderHeaderDD
+        Integer iCount iOldConstraint iNewConst
+        
+        Move 0 to iCount
+        
+        // Validate Customer Number
+        Move oCustomerDataDictionary to hoCustomerDD
+        Send Clear of hoCustomerDD
+        Move iCustNum to Customer.Customer_number
+        Send Find of hoCustomerDD EQ 1
+        
+        // Find Orders for iCustNum
+        If (Found) Begin
+            Move oOrderHeaderDataDictionary to hoOrderHeaderDD
+            Send Find of hoOrderHeaderDD first_record 1
+            
+            While (Found)
+                Move OrderHeader.Order_number to iArrayOfOrderNumbers[iCount]
+                
+                Send Find of hoOrderHeaderDD GT 1
+                Increment iCount
+            Loop
+            
+        end
+        else Begin
+            Send WebServiceException "Customer number not found."
+            Function_Return
+        end
+        
+        Function_Return iArrayOfOrderNumbers
+    End_Function
+    
+    // Function ChangeCustomerAddress:
+    // Change address for customer
+    //
+    // This demonstrates how to pass and use simple struct data
+    //
+    // NewCustomerAddress - New Customer Address
+    // bSuccess - Boolean indicating if the new address was changed successfully or not
+    { Published = True  }
+    { Description = "Change address for customer."  }
+    Function ChangeCustomerAddress integer iCustNum tCustAddress NewCustomerAddress returns Boolean
+        boolean bSuccess
+        handle hDD
+        
+        move False to bSuccess
+        
+        Move oCustomerDataDictionary to hDD
+        send clear of hDD
+        move iCustNum to Customer.Customer_number
+        send find of hDD EQ 1
+        
+        if (found) begin
+            // Move values from structure to DD buffer
+            set field_changed_value  of hDD FIELD Customer.Address to NewCustomerAddress.sCustAddress
+            set field_changed_value  of hDD FIELD Customer.City    to NewCustomerAddress.sCity
+            set field_changed_value  of hDD FIELD Customer.State   to NewCustomerAddress.sState
+            set field_changed_value  of hDD FIELD Customer.Zip     to NewCustomerAddress.sZip
+            
+            // Save record
+            send Request_Save of hDD
+            move (not(Err)) to bSuccess
+        end
+        
+        Function_Return bSuccess
+    End_Function
+    
+    // Function CreateNewCustomer:
+    // Add new customer to Customer table
+    //
+    // This demonstrates how to pass and use more complex struct data,
+    // where the struct contains an element that is itself another struct
+    //
+    // NewCustomer - New Customer
+    // iSuccess - Integer containing the customer number, if the new customer was added successfully
+    // or -1 if customer was not added
+    { Published = True }
+    { Description = "Add new customer to Customer table." }
+    Function CreateNewCustomer tNewCustomer NewCustomer returns Integer
+        integer iSuccess
+        handle hDD
+        string sName
+        
+        Move oCustomerDataDictionary to hDD
+        send clear of hDD
+        
+        // Move values from structure to DD buffer
+        move (NewCustomer.sFirstName * NewCustomer.sMiddleName * NewCustomer.sLastName) to sName
+        Set field_changed_value of hDD Field Customer.Name          to sName
+        Set field_changed_value of hDD Field Customer.Address       to NewCustomer.Address.sCustAddress
+        Set field_changed_value of hDD Field Customer.City          to NewCustomer.Address.sCity
+        Set field_changed_value of hDD Field Customer.State         to NewCustomer.Address.sState
+        Set field_changed_value of hDD Field Customer.Zip           to NewCustomer.Address.sZip
+        Set field_changed_value of hDD Field Customer.Phone_number  to NewCustomer.sPhoneNumber
+        Set field_changed_value of hDD Field Customer.Fax_number    to NewCustomer.sFaxNumber
+        Set field_changed_value of hDD Field Customer.Email_address to NewCustomer.sEmailAddress
+        
+        // note that the default for credit_limit is already set in the DD
+        Set field_changed_value of hDD Field Customer.Purchases     to 0
+        Set field_changed_value of hDD Field Customer.Balance       to 0
+        Set field_changed_value of hDD Field Customer.Comments      to "New Customer"
+        Set field_changed_value of hDD Field Customer.Status        to "Y"  // Active by default
+        
+        // Save record
+        send request_save of hDD
+        If (not(Err));
+            Move Customer.Customer_Number to iSuccess
+        Else;
+            Move -1 to iSuccess
+        
+        Function_Return iSuccess
+    End_Function
+    
+    // Function GetCustomerInfo:
+    // Searches for customer number in the Customer table and returns customer details
+    //
+    // This demonstrates how to build and return data in a simple struct
+    //
+    // iCustNum - Customer number
+    // OneCustomer - Structure containing Customer Information from Customer Table
+    { Published = True }
+    { Description = "Searches for customer number in the Customer table and returns customer details." }
+    Function GetCustomerInfo integer iCustNum returns tCustomerInfo
+        tCustomerInfo OneCustomer
+        handle hDD
+        
+        Move oCustomerDataDictionary to hDD
+        send clear of hDD
+        move iCustNum to Customer.Customer_number
+        send find of hDD EQ 1
+        
+        if (found) begin
+            move Customer.Customer_Number to OneCustomer.iCustNumber
+            move Customer.Name            to OneCustomer.sName
+            move Customer.Address         to OneCustomer.sCustAddress
+            move Customer.City            to OneCustomer.sCity
+            move Customer.State           to OneCustomer.sState
+            move Customer.Zip             to OneCustomer.sZip
+            move Customer.Phone_number    to OneCustomer.sPhoneNumber
+            move Customer.Fax_number      to OneCustomer.sFaxNumber
+            move Customer.Email_address   to OneCustomer.sEmailAddress
+            move Customer.Credit_limit    to OneCustomer.rCreditLimit
+            move Customer.Purchases       to OneCustomer.rPurchases
+            move Customer.Balance         to OneCustomer.rBalance
+            move Customer.Comments        to OneCustomer.sComments
+            move Customer.Status          to OneCustomer.sStatus
+        end
+        else begin
+            send WebServiceException "Customer number not found."
+            Function_Return
+        End
+        
+        Function_Return OneCustomer
+    End_Function
+    
+    // Function GetCustomerInfoList:
+    // Reads customer table and returns an array with a list of customers
+    //
+    // This demonstrates how to build and return data in an array of structs
+    //
+    // ArrayOfCustomers - Array containing Customer from Customer table
+    { Published = True  }
+    { Description = "Reads customer table and returns an array with a list of customers."  }
+    Function GetCustomerInfoList returns tCustomerInfo[]
+        tCustomerInfo[] ArrayOfCustomers
+        handle hoCustomerDD
+        integer iCount
+        
+        move 0 to iCount
+        Move oCustomerDataDictionary to hoCustomerDD
+        
+        // now go through all customer records
+        send clear of hoCustomerDD
+        send find of hoCustomerDD GE 2
+        while (found)
+            move Customer.Customer_Number to ArrayOfCustomers[iCount].iCustNumber
+            move Customer.Name            to ArrayOfCustomers[iCount].sName
+            move Customer.Address         to ArrayOfCustomers[iCount].sCustAddress
+            move Customer.City            to ArrayOfCustomers[iCount].sCity
+            move Customer.State           to ArrayOfCustomers[iCount].sState
+            move Customer.Zip             to ArrayOfCustomers[iCount].sZip
+            move Customer.Phone_number    to ArrayOfCustomers[iCount].sPhoneNumber
+            move Customer.Fax_number      to ArrayOfCustomers[iCount].sFaxNumber
+            move Customer.Email_address   to ArrayOfCustomers[iCount].sEmailAddress
+            move Customer.Credit_limit    to ArrayOfCustomers[iCount].rCreditLimit
+            move Customer.Purchases       to ArrayOfCustomers[iCount].rPurchases
+            move Customer.Balance         to ArrayOfCustomers[iCount].rBalance
+            move Customer.Comments        to ArrayOfCustomers[iCount].sComments
+            move Customer.Status          to ArrayOfCustomers[iCount].sStatus
+            
+            send find of hoCustomerDD GT 2
+            increment iCount
+        Loop
+        
+        Function_Return ArrayOfCustomers
+    End_Function
+    
+    // Function GetOrderSummaryForCustomer:
+    // Searches for order number in the OrderHeader table for specified customer number and returns
+    // order number, date and total.
+    //
+    // This demonstrates how to build and return data in an array of structs
+    //
+    // iCustNum - Customer number
+    // ArrayOfOrdersSum - Array containing OrderSummary for iCustNum
+    { Published = True  }
+    { Description = "Searches for order number in the OrderHeader table for specified customer number and returns order number, date and total."  }
+    Function GetOrderSummaryForCustomer integer iCustNum returns tOrderSummary[]
+        tOrderSummary[] ArrayOfOrdersSum
+        handle hDD
+        integer iCount iOldConstraint
+        
+        move 0 to iCount
+        
+        // Validate Customer Number
+        Move oCustomerDataDictionary to hDD
+        send clear of hDD
+        move iCustNum to Customer.Customer_number
+        send find of hDD EQ 1
+        
+        // Find Orders for iCustNum
+        if (found) begin
+            Move oOrderHeaderDataDictionary to hDD
+            send find of hDD first_record 1
+            
+            while (found)
+                move OrderHeader.Order_number to ArrayOfOrdersSum[iCount].iOrderNumber
+                move OrderHeader.Order_Date   to ArrayOfOrdersSum[iCount].dOrderDate
+                Move OrderHeader.Order_Total  to ArrayOfOrdersSum[iCount].rOrderTotal
+                
+                send find of hDD GT 1
+                increment iCount
+            loop
+            
+        end
+        else begin
+            send WebServiceException "Customer number not found."
+            Function_Return
+            
+        end
+        
+        Function_Return ArrayOfOrdersSum
+    End_Function
+    
+    // Function GetOrderInfo:
+    // Searches for order number in the OrderHeader table and returns order header and details
+    //
+    // This demonstrates how to build and return data in complex structs.
+    // This struct contains a member that is an array of structs
+    //
+    // iOrdNum - Order number
+    // OneOrder - Structure containing Order header and details
+    { Published = True  }
+    { Description = "Searches for order number in the OrderHeader table and returns order header and details."  }
+    Function GetOrderInfo integer iOrdNum returns tOrder
+        tOrder OneOrder
+        handle hDD
+        integer iCount iOldConstraint
+        Boolean bHasRecord
+        
+        move 0 to iCount
+        
+        Move oOrderHeaderDataDictionary to hDD
+        
+        // OrderHeaderDataDictionary is constrained by Customer. In order to find all orders,
+        // not only the ones belonging to the current Customer in the DD buffer,
+        // we need to remove the constraint. Here we:
+        // save the current constraint
+        get constrain_file of hDD to iOldConstraint
+        // remove the constraint
+        set constrain_file of hDD to 0
+        // enforce the new rule, i.e. no constraint
+        send rebuild_constraints of hDD
+        
+        send clear of hDD
+        Move iOrdNum to OrderHeader.Order_number
+        send find of hDD EQ 1
+        
+        // restore the default constraint to whatever it was
+        set constrain_file of hDD to iOldConstraint
+        send rebuild_constraints of hDD
+        
+        get HasRecord of hDD to bHasRecord
+        if (bHasRecord) begin
+            
+            move OrderHeader.Order_Number    to OneOrder.iOrderNumber
+            move OrderHeader.Customer_Number to OneOrder.iCustNumber
+            move OrderHeader.Order_Date      to OneOrder.dOrdDate
+            move OrderHeader.Terms           to OneOrder.sTerms
+            move OrderHeader.Ship_Via        to OneOrder.sShipVia
+            move OrderHeader.Ordered_By      to OneOrder.sOrderedBy
+            move OrderHeader.Salesperson_ID  to OneOrder.sSalesPerson
+            Move OrderHeader.Order_Total     to OneOrder.rOrderTotal
+            
+            Move oOrderDetailDataDictionary to hDD
+            send find of hDD first_record 1
+            while (found)
+                move OrderDetail.Item_id        to OneOrder.ArrayOfDetails[iCount].sItemID
+                move OrderDetail.Qty_ordered    to OneOrder.ArrayOfDetails[iCount].iQty
+                move OrderDetail.Price          to OneOrder.ArrayOfDetails[iCount].rUnitPrice
+                move OrderDetail.Extended_price to OneOrder.ArrayOfDetails[iCount].rPrice
+                
+                send find of hDD GT 1
+                increment iCount
+            loop
+            
+        end
+        else begin
+            send WebServiceException "Order number not found."
+            Function_Return
+        end
+        
+        Function_Return OneOrder
+    End_Function
+    
+End_Object
+

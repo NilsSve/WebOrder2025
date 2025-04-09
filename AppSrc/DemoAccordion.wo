@@ -1,0 +1,206 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg
+Use cWebAccordionContainer.pkg
+Use cWebAccordionCard.pkg
+
+Use cCustomerDataDictionary.dd
+Use cSalesPersonDataDictionary.dd
+Use cOrderHeaderDataDictionary.dd
+
+Use cWebCombo.pkg
+Use cWebEdit.pkg
+Use cWebCheckbox.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+
+
+Object oDemoAccordion is a cWebView
+    Object oSalesPersonDataDictionary is a cSalesPersonDataDictionary
+    End_Object
+    
+    Object oCustomerDataDictionary is a cCustomerDataDictionary
+    End_Object
+    
+    Object oOrderHeaderDataDictionary is a cOrderHeaderDataDictionary
+        Set DDO_Server to oSalesPersonDataDictionary
+        Set Constrain_file to Customer.File_number
+        Set DDO_Server to oCustomerDataDictionary
+    End_Object
+    
+    Set Main_DD to oCustomerDataDictionary
+    Set Server to oCustomerDataDictionary
+    
+    Set piWidth to 700
+    Set psCaption to "Accordion Demo"
+    
+    // Your DDO structure will go here
+    
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oCustomer_Customer_Number is a cWebForm
+            Entry_Item Customer.Customer_Number
+            Set piColumnSpan to 4
+            Set psLabel to "Customer Number:"
+        End_Object
+        
+        Object oCustomer_Status is a cWebCheckBox
+            Entry_Item Customer.Status
+            Set piColumnSpan to 3
+            Set psCaption to "Active Status"
+            Set piColumnIndex to 9
+        End_Object
+        
+        Object oCustomer_Name is a cWebForm
+            Entry_Item Customer.Name
+            Set piColumnSpan to 7
+            Set psLabel to "Customer Name:"
+        End_Object
+        
+        Object oWebAccordionContainer1 is a cWebAccordionContainer
+            Set pbFillHeight to True
+            
+            Object oDetailsCard is a cWebAccordionCard
+                Set piColumnCount to 12
+                Set psCaption to "Details"
+                Set pbScroll to True
+                
+                Object oCustomer_Address is a cWebForm
+                    Entry_Item Customer.Address
+                    Set piColumnSpan to 7
+                    Set psLabel to "Street Address:"
+                End_Object
+                
+                Object oCustomer_City is a cWebForm
+                    Entry_Item Customer.City
+                    Set piColumnSpan to 7
+                    Set psLabel to "City:"
+                End_Object
+                
+                Object oCustomer_State is a cWebCombo
+                    Entry_Item Customer.State
+                    Set piColumnSpan to 7
+                    Set psLabel to "State:"
+                End_Object
+                
+                Object oCustomer_Zip is a cWebForm
+                    Entry_Item Customer.Zip
+                    Set piColumnSpan to 5
+                    Set psLabel to "Zip/Postal Code:"
+                End_Object
+                
+                Object oCustomer_Phone_Number is a cWebForm
+                    Entry_Item Customer.Phone_Number
+                    Set piColumnSpan to 6
+                    Set psLabel to "Phone Number:"
+                End_Object
+                
+                Object oCustomer_Fax_Number is a cWebForm
+                    Entry_Item Customer.Fax_Number
+                    Set piColumnSpan to 6
+                    Set psLabel to "Fax Number:"
+                End_Object
+                
+                Object oCustomer_EMail_Address is a cWebForm
+                    Entry_Item Customer.EMail_Address
+                    Set piColumnSpan to 7
+                    Set psLabel to "E-Mail Address:"
+                End_Object
+                
+            End_Object
+            
+            Object oBalanceCard is a cWebAccordionCard
+                Set piColumnCount to 12
+                Set psCaption to "Financial"
+                Set pbScroll to True
+                
+                Object oCustomer_Credit_Limit is a cWebForm
+                    Entry_Item Customer.Credit_Limit
+                    Set psLabel to "Credit Limit:"
+                    Set piColumnSpan to 5
+                End_Object
+                
+                Object oCustomer_Purchases is a cWebForm
+                    Entry_Item Customer.Purchases
+                    Set piColumnSpan to 5
+                    Set psLabel to "Total Purchases:"
+                End_Object
+                
+                Object oCustomer_Balance is a cWebForm
+                    Entry_Item Customer.Balance
+                    Set piColumnSpan to 5
+                    Set psLabel to "Balance Due:"
+                End_Object
+                
+            End_Object
+            
+            Object oCommentsCard is a cWebAccordionCard
+                Set piColumnCount to 12
+                Set psCaption to "Comments"
+                
+                Object oCustomer_Comments is a cWebEdit
+                    Entry_Item Customer.Comments
+                    Set piColumnSpan to 0
+                    Set psLabel to "Comments:"
+                    Set pbShowLabel to False
+                    Set pbFillHeight to True
+                End_Object
+            End_Object
+            
+            Object oOrdersCard is a cWebAccordionCard
+                Set piColumnCount to 12
+                Set psCaption to "Orders"
+                
+                Object oOrdersList is a cWebList
+                    Set pbFillHeight to True
+                    Set Server to oOrderHeaderDataDictionary
+                    
+                    Object oOrderHeader_Order_Number is a cWebColumn
+                        Entry_Item OrderHeader.Order_Number
+                        Set psCaption to "Order Number"
+                        Set piWidth to 50
+                    End_Object
+                    
+                    Object oOrderHeader_Order_Date is a cWebColumn
+                        Entry_Item OrderHeader.Order_Date
+                        Set psCaption to "Order Date"
+                        Set piWidth to 50
+                    End_Object
+                    
+                    Object oOrderHeader_Ordered_By is a cWebColumn
+                        Entry_Item OrderHeader.Ordered_By
+                        Set psCaption to "Ordered By"
+                        Set piWidth to 50
+                    End_Object
+                    
+                    Object oOrderHeader_SalesPerson_ID is a cWebColumn
+                        Entry_Item SalesPerson.ID
+                        Set psCaption to "ID"
+                        Set piWidth to 50
+                    End_Object
+                    
+                    Object oOrderHeader_Order_Total is a cWebColumn
+                        Entry_Item OrderHeader.Order_Total
+                        Set psCaption to "Order Total"
+                        Set piWidth to 50
+                    End_Object
+                End_Object
+                
+                
+            End_Object
+            
+            
+            
+            
+            
+        End_Object
+        
+        // place controls here.
+        // Your view will grow as controls are added
+        
+        
+    End_Object
+    
+End_Object
+

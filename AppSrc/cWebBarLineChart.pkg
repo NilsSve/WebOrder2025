@@ -1,0 +1,343 @@
+﻿Use cWebDrawing.pkg
+
+Struct tDataPointValue
+    Float fValue
+    String sLabel
+End_Struct
+
+Struct tDataPoint
+    String sId
+    Integer eChartType
+    String sColor
+    String sLabel
+    tDataPointValue[] tDataPointValues
+End_Struct
+
+
+Class cWebBarLineChart is a cWebDrawing
+    
+    Procedure Construct_Object
+        Forward Send Construct_Object
+        
+        Set peResizeMode to wdResizeModeScale
+            
+        Property Float pfChartWidth
+        Property Float pfChartHeight
+        Property Float pfHighestValue 4000
+        Property Float pfLowestValue 0
+        Property Float pfMargin 50.0
+        Property tWebPoint ptAxisOrigin
+        Property tWebPoint ptAxisHorizontal
+        Property tWebPoint ptAxisVertical
+    End_Procedure
+    
+    Procedure InitializeChartDrawing tDataPoint[] #tDataPoints
+        Integer iDrawingWidth iDrawingHeight
+        Float fMargin fChartWidth fChartHeight
+        tWebPoint axisOrigin axisHorizontal axisVertical
+        
+        WebGet piDrawingWidth to iDrawingWidth
+        WebGet piDrawingHeight to iDrawingHeight
+        Get pfMargin to fMargin
+        
+        Move (XYPoint(Self, fMargin, iDrawingHeight - fMargin - 50.0)) to axisOrigin
+        Move (XYPoint(Self, iDrawingWidth - fMargin, axisOrigin.fY)) to axisHorizontal
+        Move (XYPoint(Self, axisOrigin.fX, fMargin)) to axisVertical
+        
+        Move (axisHorizontal.fX - axisOrigin.fX) to fChartWidth
+        Move (axisOrigin.fY - axisVertical.fY) to fChartHeight
+        
+        Set ptAxisOrigin to axisOrigin
+        Set ptAxisHorizontal to axisHorizontal
+        Set ptAxisVertical to axisVertical
+        Set pfChartWidth to fChartWidth
+        Set pfChartHeight to fChartHeight
+        
+        Float fHighestValue fLowestValue
+        Get pfHighestValue to fHighestValue
+        Get pfLowestValue to fLowestValue
+        
+        Send CreatePath ""
+        Send PathAdd "" axisOrigin
+        Send PathAdd "" axisHorizontal
+        Send StrokeColor "" "#000000"
+        Send StrokeWidth "" 1
+        
+        Send CreatePath ""
+        Send PathAdd "" axisOrigin
+        Send PathAdd "" axisVertical
+        Send StrokeColor "" "#000000"
+        Send StrokeWidth "" 1
+        
+        tDataPoint #tDataPoint
+        Move (#tDataPoints[0]) to #tDataPoint
+        
+        Integer iVerticalLineIndex
+        For iVerticalLineIndex from 0 to 10
+            Float fPercentageY fLineValueOffset fLineValue fOffest fY
+            Move (Convert(iVerticalLineIndex, Float) / 10) to fPercentageY
+            Move (fHighestValue - fLowestValue) to fLineValueOffset
+            Move ((fLineValueOffset * fPercentageY) + fLowestValue) to fLineValue
+            Move (fChartHeight * fPercentageY) to fOffest
+            Move (fChartHeight - fOffest) to fY
+            
+            // Line Value
+            Send CreateText "" (XYPoint(Self, axisVertical.fX - 7, fY + axisVertical.fY + 4)) fLineValue "Arial" 10 wdFontJustificationRight "bold"
+            
+            // Small version
+            Send CreatePath ""
+            Send PathAdd "" (XYPoint(Self, axisOrigin.fX - 5, fY + axisVertical.fY))
+            Send PathAdd "" (XYPoint(Self, axisOrigin.fX, fY + axisVertical.fY))
+            Send StrokeColor "" "#000000"
+            Send StrokeWidth "" 1
+            
+            // Long lines
+            If (iVerticalLineIndex > 0) Begin
+                Send CreatePath ""
+                Send PathAdd "" (XYPoint(Self, axisOrigin.fX, fY + axisVertical.fY))
+                Send PathAdd "" (XYPoint(Self, axisHorizontal.fX, fY + axisVertical.fY))
+                Send StrokeColor "" "#e1e1e1"
+                Send StrokeWidth "" 1
+            End
+        Loop
+        
+        Integer iHorizontalLineIndex
+        For iHorizontalLineIndex from 0 to (SizeOfArray(#tDataPoint.tDataPointValues))
+            Float fPercentageX fX
+            Move (Convert(iHorizontalLineIndex, Float) / Convert(SizeOfArray(#tDataPoint.tDataPointValues), Float)) to fPercentageX
+            Move (fChartWidth * fPercentageX) to fX
+            
+            Float fColumnWidth fColumnCenter
+            Move (fChartWidth / SizeOfArray(#tDataPoint.tDataPointValues)) to fColumnWidth
+            Move (fColumnWidth / 2) to fColumnCenter
+            
+            If (iHorizontalLineIndex > 0) Begin
+                String sLabel
+                Move (#tDataPoint.tDataPointValues[iHorizontalLineIndex - 1].sLabel) to sLabel
+                Send CreateText "" (XYPoint(Self, fX + axisOrigin.fX - fColumnCenter, axisOrigin.fY + 15)) sLabel "Arial" 10 wdFontJustificationCenter "bold"
+            End
+            
+            // Small lines
+            Send CreatePath ""
+            Send PathAdd "" (XYPoint(Self, fX + axisOrigin.fX, axisOrigin.fY))
+            Send PathAdd "" (XYPoint(Self, fX + axisOrigin.fX, axisOrigin.fY + 5))
+            Send StrokeColor "" "#000000"
+            Send StrokeWidth "" 1
+            
+            // Long lines
+            If (iHorizontalLineIndex > 0) Begin
+                Send CreatePath ""
+                Send PathAdd "" (XYPoint(Self, fX + axisOrigin.fX, axisVertical.fY))
+                Send PathAdd "" (XYPoint(Self, fX + axisOrigin.fX, axisHorizontal.fY))
+                Send StrokeColor "" "#e1e1e1"
+                Send StrokeWidth "" 1 
+            End
+        Loop
+    End_Procedure
+    
+    Function PointPosition Float fValue Integer iCurrentItemIndex Integer iTotalItems Returns tWebPoint
+        Float fChartWidth fChartHeight fLowestValue fHighestValue
+        tWebPoint axisVertical
+        Get pfChartWidth to fChartWidth
+        Get pfChartHeight to fChartHeight
+        Get pfLowestValue to fLowestValue
+        Get pfHighestValue to fHighestValue
+        Get ptAxisVertical to axisVertical
+        
+        Float fPercentageX fXPos
+        Move (Convert(iCurrentItemIndex, Float) / Convert(iTotalItems, Float)) to fPercentageX
+        Move (fChartWidth * fPercentageX) to fXPos
+        
+        Float fValueOffset fPercentageY fOffset fYPos
+        Move (fHighestValue - fLowestValue) to fValueOffset
+        Move ((fValue - fLowestValue) / fValueOffset) to fPercentageY
+        Move (fChartHeight * fPercentageY) to fOffset
+        Move (fChartHeight - fOffset) to fYPos
+        
+        Function_Return (XYPoint(Self, fXPos + axisVertical.fX, fYPos + axisVertical.fY))
+    End_Function
+    
+    Function CreateLine String sId String sColor String sLabel Returns tDataPoint
+        tDataPoint #tDataPoint
+        
+        Move sId to #tDataPoint.sId
+        Move sColor to #tDataPoint.sColor
+        Move sLabel to #tDataPoint.sLabel
+        Move 0 to #tDataPoint.eChartType
+        
+        Function_Return #tDataPoint
+    End_Function
+    
+    Function CreateBar String sId String sColor String sLabel Returns tDataPoint
+        tDataPoint #tDataPoint
+        
+        Move sId to #tDataPoint.sId
+        Move sColor to #tDataPoint.sColor
+        Move sLabel to #tDataPoint.sLabel
+        Move 1 to #tDataPoint.eChartType
+        
+        Function_Return #tDataPoint
+    End_Function
+    
+    Procedure AddDataPoint tDataPoint ByRef #tDataPoint Float fValue String sLabel
+        Float fHighestValue fLowestValue
+        Get pfHighestValue to fHighestValue
+        Get pfLowestValue to fLowestValue
+        
+        If (fValue > fHighestValue) Begin
+            Move fValue to fHighestValue
+        End
+        
+        If (fValue < fLowestValue) Begin
+            Move fValue to fLowestValue
+        End
+        
+        Set pfHighestValue to fHighestValue
+        Set pfLowestValue to fLowestValue
+        
+        tDataPointValue #tDataPointValue
+        Move fValue to #tDataPointValue.fValue
+        
+        If (num_arguments > 2) Begin
+            Move sLabel to #tDataPointValue.sLabel
+        End
+        
+        Move #tDataPointValue to #tDataPoint.tDataPointValues[SizeOfArray(#tDataPoint.tDataPointValues)]
+    End_Procedure
+    
+    Procedure CreateLinePoints tDataPoint[] aDataPoints tDataPoint #tDataPoint
+        Float fChartWidth
+        Get pfChartWidth to fChartWidth
+        
+        Send CreatePath #tDataPoint.sId
+        tDataPointValue[] tDatapointValues
+        Move #tDataPoint.tDataPointValues to tDatapointValues
+        
+        Integer iIndex
+        For iIndex from 0 to (SizeOfArray(tDataPointValues) - 1)
+            Float fValue
+            tWebPoint tPosition
+            Float fColumnWidth fColumnCenter
+            
+            Move tDataPointValues[iIndex].fValue to fValue
+            Get PointPosition fValue iIndex (SizeOfArray(tDataPointValues)) to tPosition
+            
+            Move (fChartWidth / (SizeOfArray(tDataPointValues))) to fColumnWidth
+            Move (fColumnWidth / 2) to fColumnCenter
+            
+            Send PathAdd #tDataPoint.sId (XYPoint(Self, tPosition.fX + fColumnCenter, tPosition.fY))
+        Loop
+        
+        Send StrokeColor #tDataPoint.sId #tDataPoint.sColor
+        Send StrokeWidth #tDataPoint.sId 1
+    End_Procedure
+    
+    Function BarDataPoints tDataPoint[] aDataPoints Returns tDataPoint[]
+        tDataPoint[] tBarDataPoints
+        
+        Integer iIndex
+        For iIndex from 0 to (SizeOfArray(aDataPoints) - 1)
+            tDataPoint #tDataPoint
+            Move aDataPoints[iIndex] to #tDataPoint
+            
+            If (#tDataPoint.eChartType = 1) Begin
+                Move #tDataPoint to tBarDataPoints[SizeOfArray(tBarDataPoints)]
+            End
+        Loop
+        
+        Function_Return tBarDataPoints
+    End_Function
+    
+    Function DataPointIndex String sId tDataPoint[] #tDataPoints Returns Integer
+        Integer iIndex
+        For iIndex from 0 to (SizeOfArray(#tDataPoints) - 1)
+            tDataPoint #tDataPoint
+            Move #tDataPoints[iIndex] to #tDataPoint
+            
+            If (#tDataPoint.sId = sId) Begin
+                Function_Return iIndex
+            End
+        Loop
+        
+        Function_Return -1
+    End_Function
+    
+    Procedure CreateBars tDataPoint[] aDataPoints tDataPoint #tDataPoint                
+        Float fChartWidth fChartHeight
+        Get pfChartWidth to fChartWidth
+        Get pfChartHeight to fChartHeight
+        
+        tDataPointValue[] tDatapointValues
+        Move #tDataPoint.tDataPointValues to tDatapointValues
+        
+        Integer iIndex
+        For iIndex from 0 to (SizeOfArray(tDataPointValues) - 1)
+            Float fValue fBarWidth fBarOffset
+            Integer iBarIndex iBarCount
+            tWebPoint tPosition axisOrigin tAxisHoriztonal
+            tDataPoint[] tBarDataPoints
+            tDataPoint tBarDataPoint
+            
+            Get ptAxisOrigin to axisOrigin
+            Get ptAxisHorizontal to tAxisHoriztonal
+            
+            Move tDataPointValues[iIndex].fValue to fValue
+            Get PointPosition fValue iIndex (SizeOfArray(tDatapointValues)) to tPosition
+            
+            Get BarDataPoints aDataPoints to tBarDataPoints
+            Get DataPointIndex #tDataPoint.sId tBarDataPoints to iBarIndex
+            Move tBarDataPoints[iBarIndex] to tBarDataPoint
+            Move (SizeOfArray(tBarDataPoints)) to iBarCount
+            Move ((fChartWidth / SizeOfArray(tDatapointValues)) / Convert(iBarCount, Float)) to fBarWidth
+            Move (fBarWidth * iBarIndex) to fBarOffset
+            
+            String sId
+            Move (#tDataPoint.sId + "-" + String(iIndex)) to sId
+            
+            Send CreateRectangle sId (XYPoint(Self, tPosition.fX + fBarOffset + 5, (axisOrigin.fY / tAxisHoriztonal.fY) * tPosition.fY)) (WHSize(Self, fBarWidth - 10.0, tAxisHoriztonal.fY - tPosition.fY))
+            Send FillColor sId #tDataPoint.sColor
+            Send StrokeColor sId "black"
+            Send StrokeWidth sId 1
+        Loop
+    End_Procedure
+    
+    
+    Procedure CreateLegend tDataPoint[] aDataPoints
+        Integer iIndex
+        For iIndex from 0 to (SizeOfArray(aDataPoints) - 1)
+            tDataPoint #tDataPoint
+            Move aDataPoints[iIndex] to #tDataPoint
+            
+            Boolean bPrintBelow
+            Float fOffsetX fOffsetY
+            Integer iHalfIndex
+            
+            Move (Mod(iIndex, 2) = 0) to bPrintBelow
+            Move (Cast(Convert(iIndex, Float) / 2, Integer)) to iHalfIndex
+            Move (iHalfIndex * 150) to fOffsetX
+            
+            If (bPrintBelow <> True) Begin
+                Move 20 to fOffsetY 
+            End
+            Else Begin
+                Move 0 to fOffsetY
+            End
+            
+            tWebPoint axisOrigin
+            Get ptAxisOrigin to axisOrigin
+            
+            Send CreateRectangle "" (XYPoint(Self, axisOrigin.fX + 10 + fOffsetX, axisOrigin.fY + 30 + fOffsetY)) (WHSize(Self, 10, 10))
+            Send StrokeColor "" "#000000"
+            Send StrokeWidth "" 1
+            Send FillColor "" #tDataPoint.sColor
+            
+            Send CreateText "" (XYPoint(Self, axisOrigin.fX + 25 + fOffsetX, axisOrigin.fY + 40 + fOffsetY)) #tDataPoint.sLabel "Arial" 10          
+        Loop
+    End_Procedure
+
+    Procedure End_Construct_Object
+        Forward Send End_Construct_Object
+
+    End_Procedure
+
+End_Class

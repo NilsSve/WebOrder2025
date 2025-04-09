@@ -1,0 +1,169 @@
+﻿Use cJsonHttpTransfer.pkg
+Use cWebModalDialog.pkg
+Use cWebPanel.pkg
+Use cWebButton.pkg
+Use cWebForm.pkg
+Use cWebList.pkg
+Use cWebColumn.pkg
+
+Struct tComment
+    Integer postId
+    Integer id
+    String name
+    String email
+    String body
+End_Struct
+
+Object oDemoJsonDisplayComments is a cWebModalDialog
+    { WebProperty=Server }
+    Property Integer piPostId -1
+    
+    Set psCaption to "DemoJsonDisplayComments"
+    Set piHeight to 600
+    Set piWidth to 700
+    Set piMinWidth to 500
+    Set piMinHeight to 200
+    Set pbServerOnSubmit to True    // enable the OnSubmit event
+    
+    Object oJsonHttp is a cJsonHttpTransfer
+        // properties to set to access an HTTPS site
+        Set piRemotePort to rpHttpSSL
+        Set peTransferFlags to ifSecure
+    End_Object
+    
+    
+    Object oMainPanel is a cWebPanel
+        Set piColumnCount to 12
+        
+        Object oCommentsList is a cWebList
+            Set pbFillHeight to True
+            Set pbDataAware to False
+            
+            Object oIdCol is a cWebColumn
+                Set psCaption to "Id"
+                Set piWidth to 50
+                Set peDataType to typeNumber
+            End_Object
+            Object oPostIdCol is a cWebColumn
+                Set psCaption to "PostId"
+                Set piWidth to 81
+                Set peDataType to typeNumber
+            End_Object
+            
+            Object oNameCol is a cWebColumn
+                Set psCaption to "Name"
+                Set piWidth to 202
+            End_Object
+            
+            Object oEmailCol is a cWebColumn
+                Set psCaption to "Email"
+                Set piWidth to 259
+            End_Object
+            
+            Object oBodyCol is a cWebColumn
+                Set psCaption to "Body"
+                Set piWidth to 406
+            End_Object
+            
+            
+            Procedure OnManualLoadData tWebRow[]  ByRef aTheRows String  ByRef sCurrentRowID
+                Handle hoJson
+                Boolean bOk
+                tComment[] aComments
+                Integer i iTo iIdCol iNameCol iPostIdCol iEmailCol iBodyCol iPostId
+                String sErr sPath
+                
+                //  Determine column order
+                Get piColumnId of oIdCol to iIdCol
+                Get piColumnId of oNameCol to iNameCol
+                Get piColumnId of oPostIdCol to iPostIdCol
+                Get piColumnId of oEmailCol to iEmailCol
+                Get piColumnId of oBodyCol to iBodyCol
+                
+                //  Generate URL
+                Move "/comments" to sPath
+                WebGet piPostId of oDemoJsonDisplayComments to iPostId
+                If (iPostId >= 0) Begin
+                    Move (sPath + "?postId=" + String(iPostId)) to sPath
+                End
+                
+                //  Perform JSON request
+                Get HttpGetJson of oJsonHttp "jsonplaceholder.typicode.com" sPath (&bOk) to hoJson
+                
+                If (bOk) Begin
+                    Get IsOfJsonType of hoJson jsonTypeArray to bOk
+                    
+                    If (bOk) Begin
+                        Get JsonToDataType of hoJson to aComments
+                        
+                        Move (SizeOfArray(aComments) - 1) to iTo
+                        For i from 0 to iTo
+                            Move aComments[i].id to aTheRows[i].sRowID
+                            
+                            Move aComments[i].id to aTheRows[i].aCells[iIdCol].sValue
+                            Move aComments[i].name to aTheRows[i].aCells[iNameCol].sValue
+                            Move aComments[i].postId to aTheRows[i].aCells[iPostIdCol].sValue
+                            Move aComments[i].email to aTheRows[i].aCells[iEmailCol].sValue
+                            Move aComments[i].body to aTheRows[i].aCells[iBodyCol].sValue
+                        Loop
+                    End
+                    Else Begin
+                        Send UserError "Unexpected JSON format." ""
+                    End
+                    
+                    Send Destroy of hoJson
+                End
+                Else Begin
+                    Get TransferErrorDescription of oJsonHttp to sErr
+                    Send UserError sErr "Transfer failed!"
+                End
+            End_Procedure
+        End_Object
+        
+    End_Object
+    
+    Object oBottomPanel is a cWebPanel
+        Set piColumnCount to 6
+        Set peRegion to prBottom
+        
+        Object oOkButton is a cWebButton
+            Set psCaption to C_$Close
+            Set piColumnSpan to 1
+            Set piColumnIndex to 5
+            
+            Procedure OnClick
+                Send Ok
+            End_Procedure
+        End_Object
+    End_Object
+    
+    Procedure OnSubmit
+        Send Ok
+    End_Procedure
+    
+    Procedure Ok
+        //  Do some calculations / saves / validations here ..
+        Forward Send Ok
+    End_Procedure
+    
+    Procedure Cancel
+        Forward Send Cancel
+    End_Procedure
+    
+    
+    
+    Procedure PopupJsonDisplayCommentsDialog Handle hoReturnObj Integer iPostId
+        Send Popup hoReturnObj
+        
+        WebSet piPostId to iPostId
+        
+        If (iPostId >= 0) Begin
+            WebSet psCaption to ("Comments for post: " + String(iPostId))
+        End
+        Else Begin
+            WebSet psCaption to "All comments"
+        End
+        
+        Send GridRefresh of oCommentsList
+    End_Procedure
+End_Object

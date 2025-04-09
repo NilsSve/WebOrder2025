@@ -1,0 +1,168 @@
+﻿Use cWebView.pkg
+Use cWebPanel.pkg
+Use cWebForm.pkg 
+Use cCustomerDataDictionary.dd
+Use cSalesPersonDataDictionary.dd
+Use cOrderHeaderDataDictionary.dd
+Use cVendorDataDictionary.dd
+Use cInventoryDataDictionary.dd
+Use cOrderDetailDataDictionary.dd
+Use cWebList.pkg
+Use cWebColumn.pkg
+
+Object oDemoManualGrouping is a cWebView
+    Object oVendor_DD is a cVendorDataDictionary
+    End_Object
+
+    Object oInventory_DD is a cInventoryDataDictionary
+        Set DDO_Server to oVendor_DD
+    End_Object
+
+    Object oSalesPerson_DD is a cSalesPersonDataDictionary
+    End_Object
+
+    Object oCustomer_DD is a cCustomerDataDictionary
+    End_Object
+
+    Object oOrderHeader_DD is a cOrderHeaderDataDictionary
+        Set DDO_Server to oSalesPerson_DD
+        Set DDO_Server to oCustomer_DD
+    End_Object
+
+    Object oOrderDetail_DD is a cOrderDetailDataDictionary
+        Set DDO_Server to oInventory_DD
+        Set DDO_Server to oOrderHeader_DD
+    End_Object
+
+    Set Main_DD to oOrderDetail_DD
+    Set Server to oOrderDetail_DD
+
+    Set piWidth to 700
+    Set psCaption to "Manual Grouping"
+    Set pbStateRestoreRecord to False
+
+
+    Object oWebMainPanel is a cWebPanel
+        Set piColumnCount to 12
+
+        Object oOrdersWebList is a cWebList
+            Set peDbGridType to gtManual
+            Set peGrouping to grpCustom
+            Set pbFillHeight to True
+            
+            Object oOrderDetail_Order_Number is a cWebColumn
+                Entry_Item OrderHeader.Order_Number
+                Set psCaption to "Order Number"
+                Set piWidth to 50
+                Set pbServerOnHeaderClick to True
+                
+                Procedure OnHeaderClick
+                    Boolean bReverse
+                    
+                    WebGet pbReverseOrdering of oOrdersWebList to bReverse
+                    WebSet pbReverseOrdering of oOrdersWebList to (not(bReverse))
+                    
+                    Send GridRefresh of oOrdersWebList
+                    
+                End_Procedure
+            End_Object
+
+            Object oOrderDetail_Detail_Number is a cWebColumn
+                Entry_Item OrderDetail.Detail_Number
+                Set psCaption to "Detail Number"
+                Set piWidth to 50
+                Set pbSortable to False
+            End_Object
+
+            Object oOrderDetail_Item_ID is a cWebColumn
+                Entry_Item Inventory.Item_ID
+                Set psCaption to "Item ID"
+                Set piWidth to 50
+                Set pbSortable to False
+            End_Object
+
+            Object oOrderDetail_Qty_Ordered is a cWebColumn
+                Entry_Item OrderDetail.Qty_Ordered
+                Set psCaption to "Quantity"
+                Set piWidth to 50
+                Set pbSortable to False
+            End_Object
+
+            Object oOrderDetail_Price is a cWebColumn
+                Entry_Item OrderDetail.Price
+                Set psCaption to "Price"
+                Set piWidth to 50
+                Set pbSortable to False
+            End_Object
+
+            Object oOrderDetail_Extended_Price is a cWebColumn
+                Entry_Item OrderDetail.Extended_Price
+                Set psCaption to "Total"
+                Set piWidth to 50
+                Set pbSortable to False
+            End_Object
+
+            Procedure OnManualLoadData tWebRow[] ByRef aTheRows String ByRef sCurrentRowID tWebGroupConfig[] ByRef aTheGroups tWebGroupHeader[] ByRef aTheGroupHeaders
+                Integer iRow iOrder iGroupHead
+                Boolean bIsReverse
+                
+                WebGet pbReverseOrdering to bIsReverse
+                
+                Move "Order" to aTheGroups[0].sLabel
+                Move -1 to iGroupHead
+                
+                Clear OrderDetail
+                If (bIsReverse) Begin                
+                    Find LT OrderDetail by 1
+                End
+                Else Begin
+                    Find GT OrderDetail by 1
+                End                
+         
+                While (Found)
+                    Relate OrderDetail
+                    
+                    If (OrderDetail.Order_Number <> iOrder) Begin
+                        Get LoadGridRow to aTheRows[iRow]
+                        Move OrderDetail.Order_Number to iOrder
+                        
+                        Increment iGroupHead
+                        
+                        Move (SFormat("%1 (%2)", OrderHeader.Order_Number, Trim(Customer.Name))) to aTheGroupHeaders[iGroupHead].sItem
+                        Move (SFormat("%1", FormatCurrency(OrderHeader.Order_Total, 2))) to aTheGroupHeaders[iGroupHead].sTotal
+                        Move -1 to aTheGroupHeaders[iGroupHead].iParentHeaderIndex
+                        Move 0 to aTheGroupHeaders[iGroupHead].iGroupIndex
+                        Move iGroupHead to aTheRows[iRow].iGroupHeaderIndex
+                    End
+                    Else Begin
+                        Get LoadGridRow to aTheRows[iRow]
+                    End
+                    
+                    Increment iRow
+
+                    If (bIsReverse) Begin                
+                        Find LT OrderDetail by 1
+                    End
+                    Else Begin
+                        Find GT OrderDetail by 1
+                    End
+                Loop
+                
+                Clear OrderDetail
+                
+                // Select the first row
+                If (SizeOfArray(aTheRows) > 0) ;
+                    Move aTheRows[0].sRowId to sCurrentRowID
+            End_Procedure
+            
+            Procedure OnLoad
+                Send GridRefresh
+            End_Procedure
+        End_Object
+        
+        // place controls here
+        // Your view will grow as controls are added
+        
+    End_Object 
+
+End_Object

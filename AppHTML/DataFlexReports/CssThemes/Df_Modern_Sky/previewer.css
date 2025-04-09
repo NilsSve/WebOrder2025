@@ -1,0 +1,111 @@
+/* GENERAL STYLES */
+.DR_Toolbar{
+
+}
+
+.DR_Toolbar .DR_Inner{
+  background: #313F54;
+  -moz-box-shadow: 0px 0px 4px #999FA2; /* Firefox/Mozilla */
+  -webkit-box-shadow: 0px 0px 4px #999FA2; /*Safari/Chrome */
+  box-shadow: 0px 0px 4px #999FA2; /* Opera & W3C */
+  border: 1px solid #005a70;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+/* BUTTON STYLES */
+.DR_Toolbar .DR_Inner .DR_Wrapper{
+  border: 1px solid transparent;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover{
+  background: #83A8E0;
+  border: 1px solid #83A8E0;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+/* SEPARATOR STYLES */
+.DR_Toolbar .DR_Inner .DR_Separator, 
+.DR_Toolbar .DR_Inner .DR_Wrapper{
+
+}
+
+.DR_Toolbar .DR_Inner .DR_Separator{
+  background: #282F37;
+  border-right:1px solid #455263;
+}
+
+/* PAGE INDICATOR STYLES */
+.DR_Toolbar .DR_Inner .DR_PageIndicator {
+  color: #ffffff;
+  margin: 0px;
+}
+
+.DR_Toolbar .DR_Inner .DR_PageIndicator .DR_CurrentPage,
+.DR_Toolbar .DR_Inner .DR_PageIndicator .DR_LastPage{
+  color: #000;
+}
+
+.DR_Toolbar.active .DR_Inner .DR_PageIndicator .DR_CurrentPage {
+  outline:0;
+  border: 1px solid #83A8E0;
+}
+
+/* FONT ICON STYLES */
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PrintButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ExportButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PreviousButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_NextButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomInButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomOutButton:before{
+  background-repeat: no-repeat;
+  font-family: "dataflex-reports" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display:inline-block;
+  font-size: 15px;
+  padding: 3px;
+  color: #fff;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_PrintButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_ExportButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_PreviousButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_NextButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_ZoomInButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_ZoomOutButton:before{
+  color: #348ee6;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PrintButton:before{ 
+  content: "d";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ExportButton:before{
+  content: "a";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PreviousButton:before{ 
+  content: "e";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_NextButton:before{
+  content: "f";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomInButton:before{
+  content: "b";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomOutButton:before{
+  content: "c";
+}

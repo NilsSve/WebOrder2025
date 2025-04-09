@@ -1,0 +1,64 @@
+/* ICONS */
+#OWEBAPP.Df_Material .RWRunReportButton .WebItm_Icon:before{
+  font-size: 22px;
+  padding: 4px;
+  content: "g";
+}
+
+/* SORT & ORDER */
+#OWEBAPP.Df_Material .RWMoveSortOrderUp {
+  margin-top: 30px;
+}
+
+#OWEBAPP.Df_Material .RWMoveSortOrderDown {
+  margin-top: 4px;
+}
+
+#OWEBAPP.Df_Material .RWMoveSortOrderUp button:hover,
+#OWEBAPP.Df_Material .RWMoveSortOrderUp button:focus,
+#OWEBAPP.Df_Material .RWMoveSortOrderDown button:hover,
+#OWEBAPP.Df_Material .RWMoveSortOrderDown button:focus{
+  background-color: #005899;
+  border-color: #005899;
+}
+
+#OWEBAPP.Df_Material .WebControl.WebButton.Web_Enabled.RWMoveSortOrderUp button,
+#OWEBAPP.Df_Material .WebControl.WebButton.Web_Enabled.RWMoveSortOrderDown button {
+  width: 40px;
+  height: 40px;
+  padding: 3px 0px 4px;
+  border-radius: 3px;
+}
+
+#OWEBAPP.Df_Material .RWMoveSortOrderDown button:before,
+#OWEBAPP.Df_Material .RWMoveSortOrderUp button:before {
+  font-size: 17px;
+  border: 1px solid transparent;
+  box-shadow: 0 0 0 0 #FFFFFF inset;
+  padding: 0;
+  text-shadow: 0 0;
+}
+
+#OWEBAPP.Df_Material .RWMoveSortOrderUp button:before {
+  content: "e";
+}
+
+#OWEBAPP.Df_Material .RWMoveSortOrderDown button:before {
+  content: "f";
+}
+
+/* FONT LOADING */
+#OWEBAPP.Df_Material .RWRunReportButton .WebItm_Icon:before,
+#OWEBAPP.Df_Material .RWMoveSortOrderUp button:before,
+#OWEBAPP.Df_Material .RWMoveSortOrderDown button:before{
+  font-family: "dataflex-reports" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display:inline-block;
+}

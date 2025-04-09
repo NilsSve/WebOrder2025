@@ -1,0 +1,106 @@
+/* GENERAL STYLES */
+.DR_Toolbar {
+  
+}
+
+.DR_Toolbar .DR_Inner{
+  background: #E6E6E6;
+  border: 1px solid #B1B1B1;
+  background-image:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIHZpZXdCb3g9IjAgMCAxIDEiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiPgo8bGluZWFyR3JhZGllbnQgaWQ9Imc3NTciIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjAlIiB5Mj0iMTAwJSI+CjxzdG9wIHN0b3AtY29sb3I9IiNGQ0ZDRkMiIG9mZnNldD0iMCIvPjxzdG9wIHN0b3AtY29sb3I9IiNFNkU2RTYiIG9mZnNldD0iMSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSJ1cmwoI2c3NTcpIiAvPgo8L3N2Zz4=);
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  -moz-box-shadow: 0px 0px 2px #999FA2; /* Firefox/Mozilla */
+  -webkit-box-shadow: 0px 0px 2px #999FA2; /*Safari/Chrome */
+  box-shadow: 0px 0px 2px #999FA2; /* Opera & W3C */
+}
+
+/* BUTTON STYLES */
+.DR_Toolbar .DR_Inner .DR_Wrapper {
+  background: #fff;
+  border: 1px solid #4B99EE;
+  webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover{
+  background: #4B99EE;
+  transition: color 0.5s, border 0.5s, background-color 0.5s;
+}
+
+/* SEPARATOR STYLES */
+.DR_Toolbar .DR_Inner .DR_Separator{
+  background: #D4D4D4;  
+  border-right:1px solid #FFF;
+}
+
+/* PAGE INDICATOR STYLES */
+.DR_Toolbar .DR_Inner .DR_PageIndicator .DR_CurrentPage,
+.DR_Toolbar .DR_Inner .DR_PageIndicator .DR_LastPage  {
+  border: 1px solid #BEBEBE;
+  webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.DR_Toolbar.active .DR_Inner .DR_PageIndicator .DR_CurrentPage{
+  box-shadow: 0 0 2px #8E9947;
+  border: 1px solid #8E9947;
+}
+
+
+/* FONT ICON STYLES */
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PrintButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ExportButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PreviousButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_NextButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomInButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomOutButton:before{
+  font-family: "dataflex-reports" !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  speak: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display:inline-block;
+  font-size: 15px;
+  padding: 3px;
+  color: #4B99EE;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_PrintButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_ExportButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_PreviousButton:before, 
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_NextButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_ZoomInButton:before,
+.DR_Toolbar .DR_Inner .DR_Wrapper:hover .DR_ZoomOutButton:before{
+  color: #348ee6;
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PrintButton:before{
+  content: "d";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ExportButton:before{
+  content: "a";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_PreviousButton:before{ 
+  content: "e";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_NextButton:before{
+  content: "f";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomInButton:before{
+  content: "b";
+}
+
+.DR_Toolbar .DR_Inner .DR_Wrapper .DR_ZoomOutButton:before{
+  content: "c";
+}

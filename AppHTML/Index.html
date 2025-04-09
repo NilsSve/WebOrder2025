@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    
+    <title>Order Entry Web Application</title>
+    
+    <link rel="shortcut icon" href="favicon.ico" sizes="48x48" />
+    
+    <!-- DataFlex Engine -->
+    <link href="DfEngine/system.css" rel="stylesheet" type="text/css" />
+    <!-- <link href="CssThemes/Df_Flat_Desktop/theme.css" rel="stylesheet" type="text/css" /> Since WebOrder supports switching we do not preload the theme-->
+    <link href="CssStyle/application.css" rel="stylesheet" type="text/css" />
+        
+    <script src="DfEngine/df-min.js"></script>
+
+    
+    <!-- DataFlex Reports Engine -->
+    <link href="DataFlexReports/Fonts/FontIcons.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_Flat_Desktop/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_Flat_Touch/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_High_Contrast/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_Material/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_Modern_Sky/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_Web_Creme/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/Df_Windows_Like/Integration.css" rel="stylesheet" type="text/css" />
+    <link href="DataFlexReports/CssThemes/ReportViewer.css" rel="stylesheet" type="text/css" />
+    <script src="DataFlexReports/Previewer.js"></script>
+
+    <!-- DataFlex Custom Controls (do not remove this line, used for automatic insertion) -->
+    
+    
+    <!-- Initialization of the WebApp -->
+    <script>
+        var oWebApp = new df.WebApp("WebServiceDispatcher.wso");
+        
+        oWebApp.displayApp("#viewport");
+    </script>
+    
+    <style>
+        html, body{
+        height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewport" style="width: 100%; height: 100%;">
+        
+    </div>
+</body>
+</html>
